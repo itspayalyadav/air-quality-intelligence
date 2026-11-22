@@ -173,7 +173,17 @@ npm run test:e2e   # playwright (build first)
 
 ## Testing
 
-Quality gates executed before delivery are recorded in the final submission report. The suite covers:
+All gates were run locally on Node 26.8.1 / npm 11.19.0 with these results:
+
+| Gate | Command | Result |
+|---|---|---|
+| Strict TypeScript | `npm run typecheck` | passed |
+| Lint | `npm run lint` | passed |
+| Unit tests | `npm test` | 88 passed, 11 files |
+| Build | `npm run build` | passed |
+| Browser / axe / responsive | `npm run test:e2e` | 44 passed |
+
+The suite covers:
 
 - US EPA and CPCB breakpoints at boundaries, clamping, the three-pollutant rule, the 500 ceiling
 - Open-Meteo payload mapping, stale detection, weather-failure resilience, coordinate rejection
@@ -181,6 +191,24 @@ Quality gates executed before delivery are recorded in the final submission repo
 - Decision engine: standard selection, good/poor air, sensitivity and intensity escalation, heat bonus, rising/falling trend, stale evidence, missing-index honesty, rule traces
 - Impact factors, rate limiting, history trend, HTTP error parsing
 - Browser: live data, location search, invalid location, missing key, Gemini failure, US/CPCB toggle, responsive layouts at 390/834/1440 px, axe accessibility scans
+
+Live smoke test against the production server on port 3000: `/`, `/dashboard`, `/decisions`, `/plan`, `/indoor`, `/insights`, `/api/air`, `/api/cities`, `/robots.txt` and `/sitemap.xml` all returned 200. `/api/ai` chat returned 503 as designed with no `GEMINI_API_KEY` on the server. A live Delhi reading returned PM2.5 99.7 µg/m³, US AQI 218 and CPCB-style AQI 231 with `observedAt` 2026-11-22T20:30 and `stale: false`.
+
+---
+
+## GenAI usage
+
+Google Gemini (`gemini-3.5-flash-lite` by default, overridable with `GEMINI_MODEL`) is used **only to explain decisions that the deterministic engine has already made**. It writes plain-language copy for the four verdicts, the optional daily plan and indoor guidance, and the multi-turn assistant. It never calculates an AQI, changes a verdict, invents a measurement or supplies a medical claim.
+
+Grounding controls in `lib/ai.ts`:
+
+- The browser sends only coordinates and a place name. `/api/ai` re-fetches readings server-side from Open-Meteo; no client-supplied number reaches the prompt.
+- The prompt receives the exact decision object, evidence list and rule trace. A shared rule set forbids fabricated readings, station names, citywide claims and diagnoses.
+- Structured output is requested with a JSON schema, then validated with zod.
+- Wrong-shape, empty or unparsable answers are discarded and the rule-based copy is shown instead.
+- If no API key is configured, the deterministic verdicts still render; only the assistant is unavailable.
+
+Generated copy was reviewed manually across the dashboard, decisions, plan and indoor pages. No GenAI-generated image, video or audio is used; the photography in `public/images` is the source asset carried over from the audited project.
 
 ---
 
@@ -199,7 +227,7 @@ Quality gates executed before delivery are recorded in the final submission repo
 
 ## Deployment
 
-The production deployment is managed as a separate Vercel project under the `payalkumari3321-9091` account. The production URL and verified smoke-test results are recorded in the final submission report.
+Deployment is pending an authenticated Vercel account for Payal. Create a **new** Vercel project named `air-quality-intelligence` from this repository (do not overwrite any existing project), set `NEXT_PUBLIC_SITE_URL` to the final origin, and set `GEMINI_API_KEY` / `GEMINI_MODEL` only if the AI explanations are wanted. After deployment, repeat the smoke tests in the Testing section against the production URL and record it here.
 
 ---
 

@@ -1,4 +1,5 @@
-export const SITE_URL = "https://aeris.vercel.app";
+export const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://air-quality-intelligence.vercel.app";
 export const GITHUB_URL = "https://github.com/itspayalyadav/air-quality-intelligence";
 export const SITE_NAME = "Aeris";
 export const SITE_TITLE = "Aeris | Urban Air Intelligence";
