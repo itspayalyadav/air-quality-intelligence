@@ -1,0 +1,250 @@
+@import "tailwindcss";
+
+/* Identity: warm ivory paper, midnight charcoal, one electric cobalt accent.
+   Contrast on canvas: ink 15.4:1, ink-soft 7.9:1, ink-muted 5.5:1, cobalt 4.6:1.
+   White on cobalt is 5.1:1. Muted grey is decorative only, never body text. */
+@theme {
+  --color-canvas: #f5f3ee;
+  --color-surface: #ffffff;
+  --color-line: #e4e0d7;
+  --color-line-strong: #cbc6ba;
+  --color-ink: #171c24;
+  --color-ink-soft: #454b55;
+  --color-ink-muted: #5c636d;
+  --color-muted: #858991;
+  --color-accent: #315cff;
+  --color-accent-soft: #dce6ff;
+
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  --font-mono: var(--font-manrope), ui-monospace, monospace;
+}
+
+/* Shape rule: marketing panels are square, interactive controls are pills.
+   Product cards keep their existing 16px radius. */
+:root {
+  color-scheme: light;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  scroll-padding-top: 5.5rem;
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01";
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-accent-soft);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Numeric data reads better with fixed-width digits. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.rise {
+  animation: rise 320ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Hero entrance, staggered by --delay on each element. */
+.hero-in {
+  animation: hero-in 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Scroll reveal. Gated on scripting so the page is never blank without JS. */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+      opacity 760ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 760ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+
+  [data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Image parallax without scroll listeners. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .parallax {
+      animation: drift linear both;
+      animation-timeline: view();
+      animation-range: cover;
+    }
+
+    @keyframes drift {
+      from {
+        transform: translateY(-3%) scale(1.07);
+      }
+      to {
+        transform: translateY(3%) scale(1.07);
+      }
+    }
+  }
+}
+
+/* Marketing nav: transparent while the hero is in view, solid once it is not.
+   Scroll-driven, so no scroll listener and no React state. */
+[data-nav="marketing"] {
+  background-color: var(--color-canvas);
+  border-color: var(--color-line);
+}
+
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-nav="marketing"] {
+      animation: nav-condense linear both;
+      animation-timeline: scroll();
+      animation-range: 8px 96px;
+    }
+
+    @keyframes nav-condense {
+      from {
+        background-color: rgba(245, 243, 238, 0);
+        border-color: rgba(228, 224, 215, 0);
+      }
+      to {
+        background-color: rgba(245, 243, 238, 0.94);
+        border-color: rgba(228, 224, 215, 1);
+      }
+    }
+  }
+}
+
+.link-underline {
+  position: relative;
+}
+
+.link-underline::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: -4px;
+  height: 1.5px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.link-underline:hover::after,
+.link-underline:focus-visible::after,
+.link-underline[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+.lift {
+  transition:
+    transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 200ms ease,
+    color 200ms ease,
+    border-color 200ms ease;
+}
+
+.lift:hover {
+  transform: translateY(-2px);
+}
+
+.lift:active {
+  transform: translateY(0) scale(0.99);
+}
+
+/* Staggered mobile menu links. */
+.menu-in > * {
+  animation: menu-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 45ms + 60ms);
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .rise *,
+  .hero-in,
+  .parallax,
+  .menu-in > * {
+    animation: none !important;
+  }
+  .hero-in,
+  .parallax {
+    transform: none !important;
+  }
+  .lift:hover {
+    transform: none;
+  }
+  * {
+    scroll-behavior: auto !important;
+  }
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.sr-only-focusable:not(:focus) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
