@@ -195,7 +195,7 @@ The suite covers:
 - Impact factors, rate limiting, history trend, HTTP error parsing
 - Browser: live data, location search, invalid location, missing key, Gemini failure, US/CPCB toggle, responsive layouts at 390/834/1440 px, axe accessibility scans
 
-Live smoke test against the production server on port 3000: `/`, `/dashboard`, `/decisions`, `/plan`, `/indoor`, `/insights`, `/api/air`, `/api/cities`, `/robots.txt` and `/sitemap.xml` all returned 200. `/api/ai` chat returned 503 as designed with no `GEMINI_API_KEY` on the server. A live Delhi reading returned PM2.5 99.7 µg/m³, US AQI 218 and CPCB-style AQI 231 with `observedAt` 2026-11-22T20:30 and `stale: false`.
+Local production-server smoke test: `/`, `/dashboard`, `/decisions`, `/plan`, `/indoor`, `/insights`, `/api/air`, `/api/cities`, `/robots.txt` and `/sitemap.xml` all returned 200; `/api/ai` returned 503 `missing_key` as designed when no key was set. A live Delhi reading returned PM2.5 99.7 µg/m³, US AQI 218 and CPCB AQI 231 with `observedAt` 2026-11-22T20:30 and `stale: false`. The same checks were repeated against the Vercel production URL after configuring the key; see [Deployment](#deployment).
 
 ---
 
@@ -234,7 +234,7 @@ Deployed as an independent Vercel project `payalkumari3321-9091/air-quality-inte
 
 - **Production URL:** https://air-quality-intelligence-seven.vercel.app
 - **Verification:** all eight pages plus `/robots.txt` and `/sitemap.xml` returned 200; `/api/air` returned a live Delhi reading (US AQI 218, CPCB AQI 231, PM2.5 99.7 µg/m³, `stale: false`); canonical URL and sitemap use the production origin; no browser console errors and no horizontal overflow at 1440, 834 or 390 px.
-- **AI:** no `GEMINI_API_KEY` was available during deployment, so AI endpoints correctly return 503 `missing_key` and all rule-based verdicts still render. Add `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`) in the Vercel project settings and redeploy to enable AI explanations.
+- **AI:** `GEMINI_API_KEY` is configured as an encrypted Vercel Secret (production only). Live `/api/ai` calls returned 200 with `gemini-flash-lite-latest`; the explain response repeated the engine's exact rule and evidence, and the assistant's answer used the live PM2.5 reading. The key is never committed to Git.
 - **Git auto-deploy:** the Vercel account is signed in with email, so it has no GitHub login connection. `vercel git connect` therefore fails; add a GitHub login connection in Vercel account settings to enable push-triggered deployments. Until then, deploy from the CLI with `vercel --prod --yes`.
 
 ---
