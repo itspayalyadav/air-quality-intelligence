@@ -6,7 +6,9 @@ Aeris is a decision-first air-quality assistant for people who live with pollute
 
 Selected vertical for **PromptWars Challenge 6: Urban Air Quality Assistant**.
 
-> Live deployment: **pending** (see [Deployment](#deployment)). The project is complete and verified locally; a Vercel production project has not been created because no authenticated Vercel account was available in the build environment.
+> **Live deployment:** https://air-quality-intelligence-seven.vercel.app
+>
+> Source: https://github.com/itspayalyadav/air-quality-intelligence (public, `main` only)
 
 ---
 
@@ -142,6 +144,7 @@ Open http://localhost:3000. Air-quality features work with no key; AI panels the
 |---|---|---|
 | `GEMINI_API_KEY` | For AI features | Google AI Studio key. Server-side only — never exposed to the browser |
 | `GEMINI_MODEL` | No | Defaults to `gemini-flash-lite-latest` |
+| `NEXT_PUBLIC_SITE_URL` | No | Canonical origin for metadata and sitemap. Set to the production URL on Vercel |
 
 `.env*` is gitignored; `.env.example` is committed with placeholder names only.
 
@@ -227,7 +230,12 @@ Generated copy was reviewed manually across the dashboard, decisions, plan and i
 
 ## Deployment
 
-Deployment is pending an authenticated Vercel account for Payal. Create a **new** Vercel project named `air-quality-intelligence` from this repository (do not overwrite any existing project), set `NEXT_PUBLIC_SITE_URL` to the final origin, and set `GEMINI_API_KEY` / `GEMINI_MODEL` only if the AI explanations are wanted. After deployment, repeat the smoke tests in the Testing section against the production URL and record it here.
+Deployed as an independent Vercel project `payalkumari3321-9091/air-quality-intelligence`.
+
+- **Production URL:** https://air-quality-intelligence-seven.vercel.app
+- **Verification:** all eight pages plus `/robots.txt` and `/sitemap.xml` returned 200; `/api/air` returned a live Delhi reading (US AQI 218, CPCB AQI 231, PM2.5 99.7 µg/m³, `stale: false`); canonical URL and sitemap use the production origin; no browser console errors and no horizontal overflow at 1440, 834 or 390 px.
+- **AI:** no `GEMINI_API_KEY` was available during deployment, so AI endpoints correctly return 503 `missing_key` and all rule-based verdicts still render. Add `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`) in the Vercel project settings and redeploy to enable AI explanations.
+- **Git auto-deploy:** the Vercel account is signed in with email, so it has no GitHub login connection. `vercel git connect` therefore fails; add a GitHub login connection in Vercel account settings to enable push-triggered deployments. Until then, deploy from the CLI with `vercel --prod --yes`.
 
 ---
 
