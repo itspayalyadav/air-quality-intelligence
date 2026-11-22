@@ -198,7 +198,7 @@ Live smoke test against the production server on port 3000: `/`, `/dashboard`, `
 
 ## GenAI usage
 
-Google Gemini (`gemini-3.5-flash-lite` by default, overridable with `GEMINI_MODEL`) is used **only to explain decisions that the deterministic engine has already made**. It writes plain-language copy for the four verdicts, the optional daily plan and indoor guidance, and the multi-turn assistant. It never calculates an AQI, changes a verdict, invents a measurement or supplies a medical claim.
+Google Gemini (`gemini-flash-lite-latest` by default, overridable with `GEMINI_MODEL`) is used **only to explain decisions that the deterministic engine has already made**. It writes plain-language copy for the four verdicts, the optional daily plan and indoor guidance, and the multi-turn assistant. It never calculates an AQI, changes a verdict, invents a measurement or supplies a medical claim.
 
 Grounding controls in `lib/ai.ts`:
 
