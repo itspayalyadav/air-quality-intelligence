@@ -108,10 +108,11 @@ lib/
 
 ### Gemini configuration
 
-- Primary model: `gemini-flash-lite-latest` (override with `GEMINI_MODEL`)
-- Fallback: `gemini-flash-latest`
-- Sequence: primary → primary after 700 ms → fallback (three attempts maximum)
-- Timeouts and 400s are not retried; 403/404 moves to the next model
+- Primary model: `gemini-3.8-flash` (override with `GEMINI_MODEL`)
+- Fallback: `gemini-3.5-flash-lite`
+- Sequence: primary → retry → fallback (three attempts maximum)
+- 429/503 use exponential backoff (500 ms, 1000 ms) or a capped `Retry-After` hint; timeouts and 400s are not retried; 404 moves to the next model
+- If both models are unavailable, Daily Plan falls back to the deterministic decision engine and labels the result as rule-based
 - Structured output is validated with zod. A wrong-shape answer is discarded, never half-rendered
 - Model availability should be re-checked against the [Gemini model list](https://ai.google.dev/gemini-api/docs/models) before changing `GEMINI_MODEL`
 
@@ -143,7 +144,7 @@ Open http://localhost:3000. Air-quality features work with no key; AI panels the
 | Variable | Required | Purpose |
 |---|---|---|
 | `GEMINI_API_KEY` | For AI features | Google AI Studio key. Server-side only — never exposed to the browser |
-| `GEMINI_MODEL` | No | Defaults to `gemini-flash-lite-latest` |
+| `GEMINI_MODEL` | No | Defaults to `gemini-3.8-flash` |
 | `NEXT_PUBLIC_SITE_URL` | No | Canonical origin for metadata and sitemap. Set to the production URL on Vercel |
 
 `.env*` is gitignored; `.env.example` is committed with placeholder names only.
@@ -201,7 +202,7 @@ Local production-server smoke test: `/`, `/dashboard`, `/decisions`, `/plan`, `/
 
 ## GenAI usage
 
-Google Gemini (`gemini-flash-lite-latest` by default, overridable with `GEMINI_MODEL`) is used **only to explain decisions that the deterministic engine has already made**. It writes plain-language copy for the four verdicts, the optional daily plan and indoor guidance, and the multi-turn assistant. It never calculates an AQI, changes a verdict, invents a measurement or supplies a medical claim.
+Google Gemini (`gemini-3.8-flash` by default, with `gemini-3.5-flash-lite` as fallback, overridable with `GEMINI_MODEL`) is used **only to explain decisions that the deterministic engine has already made**. It writes plain-language copy for the four verdicts, the optional daily plan and indoor guidance, and the multi-turn assistant. It never calculates an AQI, changes a verdict, invents a measurement or supplies a medical claim.
 
 Grounding controls in `lib/ai.ts`:
 
@@ -234,7 +235,7 @@ Deployed as an independent Vercel project `payalkumari3321-9091/air-quality-inte
 
 - **Production URL:** https://air-quality-intelligence-seven.vercel.app
 - **Verification:** all eight pages plus `/robots.txt` and `/sitemap.xml` returned 200; `/api/air` returned a live Delhi reading (US AQI 218, CPCB AQI 231, PM2.5 99.7 µg/m³, `stale: false`); canonical URL and sitemap use the production origin; no browser console errors and no horizontal overflow at 1440, 834 or 390 px.
-- **AI:** `GEMINI_API_KEY` is configured as an encrypted Vercel Secret (production only). Live `/api/ai` calls returned 200 with `gemini-flash-lite-latest`; the explain response repeated the engine's exact rule and evidence, and the assistant's answer used the live PM2.5 reading. The key is never committed to Git.
+- **AI:** `GEMINI_API_KEY` is configured as an encrypted Vercel Secret (production only). Live `/api/ai` calls returned 200 with `gemini-3.8-flash` (fallback `gemini-3.5-flash-lite`); the explain response repeated the engine's exact rule and evidence, and the assistant's answer used the live PM2.5 reading. The key is never committed to Git.
 - **Git auto-deploy:** the Vercel account is signed in with email, so it has no GitHub login connection. `vercel git connect` therefore fails; add a GitHub login connection in Vercel account settings to enable push-triggered deployments. Until then, deploy from the CLI with `vercel --prod --yes`.
 
 ---

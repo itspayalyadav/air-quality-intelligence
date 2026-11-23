@@ -5,10 +5,12 @@ import type { AirData, DecisionExplanation, RecommendationSet } from "./types";
 import type { DecisionId, DecisionReport } from "./decision-engine";
 
 const ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
-const DEFAULT_MODEL = "gemini-flash-lite-latest";
-// gemini-2.5-flash-lite returns 404 for keys created after its retirement, so the
-// fallback is a genuinely different model rather than another lite alias.
-const FALLBACK_MODELS = ["gemini-flash-lite-latest", "gemini-flash-latest"];
+// Both IDs are stable on the Gemini Developer API v1beta (checked against the
+// published model list) and accept generateContent with structured output.
+const DEFAULT_MODEL = "gemini-3.8-flash";
+const FALLBACK_MODELS = ["gemini-3.5-flash-lite"];
+const BACKOFF_BASE_MS = 500;
+const MAX_BACKOFF_MS = 2_000;
 
 export type AiErrorCode =
   | "missing_key"
@@ -23,6 +25,8 @@ export class AiError extends Error {
   constructor(
     public code: AiErrorCode,
     message: string,
+    /** Server-hinted wait before retrying a 429/503, capped by the caller. */
+    public retryAfterMs?: number,
   ) {
     super(message);
     this.name = "AiError";
@@ -81,6 +85,21 @@ type GeminiResponse = {
   promptFeedback?: { blockReason?: string };
 };
 
+/** Honour Retry-After when present, but never let a hint exceed the call budget. */
+function retryHint(response: Response): number | undefined {
+  const header = response.headers.get("retry-after");
+  if (!header) return undefined;
+  const seconds = Number(header);
+  if (Number.isFinite(seconds)) {
+    return Math.min(MAX_BACKOFF_MS, Math.max(0, seconds * 1000));
+  }
+  const date = Date.parse(header);
+  if (Number.isFinite(date)) {
+    return Math.min(MAX_BACKOFF_MS, Math.max(0, date - Date.now()));
+  }
+  return undefined;
+}
+
 async function callGemini(
   model: string,
   body: Record<string, unknown>,
@@ -107,7 +126,7 @@ async function callGemini(
   }
 
   if (response.status === 429 || response.status === 503) {
-    throw new AiError("busy", "The AI model is busy right now.");
+    throw new AiError("busy", "The AI model is busy right now.", retryHint(response));
   }
   if (response.status === 404) {
     // A retired model name. Worth trying the next model in the chain, not the same one.
@@ -147,8 +166,9 @@ function retryable(error: unknown) {
 }
 
 async function withFallback<T>(run: (model: string) => Promise<T>): Promise<T> {
-  // Free-tier 503s are usually capacity blips that clear in seconds, so the primary
-  // model gets one immediate retry before the chain moves to a different model.
+  // At most three calls: primary, one bounded retry, then the fallback model.
+  // 429/503 waits use exponential backoff (500ms then 1000ms), or a capped
+  // Retry-After hint from the server. Timeout and 400 are never retried.
   const primary = activeModel();
   const sequence = [primary, primary, ...FALLBACK_MODELS.filter((m) => m !== primary)].slice(0, 3);
   let lastError: unknown = new AiError("busy", "The AI model is busy right now.");
@@ -160,7 +180,12 @@ async function withFallback<T>(run: (model: string) => Promise<T>): Promise<T> {
       lastError = error;
       if (!retryable(error) || index === sequence.length - 1) break;
       console.warn(`[ai] ${model} failed (${(error as AiError).code ?? "error"}), retrying`);
-      await new Promise((resolve) => setTimeout(resolve, 700));
+      const backoff = Math.min(MAX_BACKOFF_MS, BACKOFF_BASE_MS * 2 ** index);
+      const wait =
+        error instanceof AiError && error.code === "busy" && error.retryAfterMs != null
+          ? error.retryAfterMs
+          : backoff;
+      await new Promise((resolve) => setTimeout(resolve, wait));
     }
   }
   throw lastError;

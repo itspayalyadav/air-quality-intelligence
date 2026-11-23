@@ -97,6 +97,8 @@ export type AiRecommendationsResponse<M extends "plan" | "indoor"> = {
   data: RecommendationSet;
   model: string;
   configured: boolean;
+  /** Set when rules answered because both Gemini models were unavailable. */
+  fallback?: "deterministic";
 };
 
 /** Plain-language explanation of a verdict the deterministic engine already made. */

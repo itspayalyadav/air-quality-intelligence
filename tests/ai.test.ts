@@ -107,8 +107,9 @@ describe("capacity errors", () => {
     const text = await generateText("system", "prompt");
     expect(text).toBe("answer from fallback");
     expect(fetchMock).toHaveBeenCalledTimes(3);
-    expect(String(fetchMock.mock.calls[1][0])).toContain("gemini-flash-lite-latest");
-    expect(String(fetchMock.mock.calls[2][0])).toContain("gemini-flash-latest");
+    expect(String(fetchMock.mock.calls[0][0])).toContain("gemini-3.8-flash");
+    expect(String(fetchMock.mock.calls[1][0])).toContain("gemini-3.8-flash");
+    expect(String(fetchMock.mock.calls[2][0])).toContain("gemini-3.5-flash-lite");
   });
 
   it("recovers when the retry of the same model succeeds", async () => {
@@ -133,7 +134,18 @@ describe("capacity errors", () => {
     const text = await generateText("system", "prompt");
     expect(text).toBe("answer from fallback");
     expect(fetchMock).toHaveBeenCalledTimes(3);
-    expect(String(fetchMock.mock.calls[2][0])).toContain("gemini-flash-latest");
+    expect(String(fetchMock.mock.calls[2][0])).toContain("gemini-3.5-flash-lite");
+  });
+
+  it("treats 429 as temporary and stops after three capped attempts", async () => {
+    const rateLimited = () =>
+      new Response("{}", { status: 429, headers: { "retry-after": "0" } });
+    const fetchMock = vi.fn().mockResolvedValue(rateLimited());
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(generateText("system", "prompt")).rejects.toMatchObject({ code: "busy" });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(String(fetchMock.mock.calls[2][0])).toContain("gemini-3.5-flash-lite");
   });
 
   it("raises a busy error when every model is overloaded", async () => {

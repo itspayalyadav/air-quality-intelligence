@@ -12,12 +12,13 @@ import {
   indoorGuidance,
 } from "@/lib/ai";
 import { buildDecisions, DEFAULT_PROFILE, type DecisionProfile } from "@/lib/decision-engine";
+import { deterministicPlan } from "@/lib/plan-fallback";
 import { apiError } from "@/lib/http";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
-// Two model attempts at 30s each is bounded by this. Without it Vercel's default
-// function timeout would cut the request before the structured answer arrives.
+// Three attempts (primary, retry, fallback) are bounded by this. Without it
+// Vercel's default timeout could cut the request before the structured answer arrives.
 export const maxDuration = 50;
 
 const placeSchema = z.object({
@@ -142,8 +143,25 @@ export async function POST(request: NextRequest) {
     }
 
     if (input.mode === "plan") {
-      const data = await dailyPlan(air, input.profile);
-      return Response.json({ mode: "plan", data, model: activeModel(), configured: true });
+      try {
+        const data = await dailyPlan(air, input.profile);
+        return Response.json({ mode: "plan", data, model: activeModel(), configured: true });
+      } catch (error) {
+        const unavailable =
+          error instanceof AiError &&
+          ["busy", "timeout", "model_unavailable", "upstream"].includes(error.code);
+        if (unavailable) {
+          // Only the Daily Plan has a complete deterministic rule set to fall back to.
+          return Response.json({
+            mode: "plan",
+            data: deterministicPlan(air, input.profile),
+            model: "deterministic",
+            configured: true,
+            fallback: "deterministic",
+          });
+        }
+        throw error;
+      }
     }
 
     if (input.mode === "indoor") {
