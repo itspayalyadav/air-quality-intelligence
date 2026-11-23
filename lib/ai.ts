@@ -165,7 +165,10 @@ function retryable(error: unknown) {
   );
 }
 
-async function withFallback<T>(run: (model: string) => Promise<T>): Promise<T> {
+async function withFallback<T>(
+  run: (model: string) => Promise<T>,
+  onModel?: (model: string) => void,
+): Promise<T> {
   // At most three calls: primary, one bounded retry, then the fallback model.
   // 429/503 waits use exponential backoff (500ms then 1000ms), or a capped
   // Retry-After hint from the server. Timeout and 400 are never retried.
@@ -175,7 +178,9 @@ async function withFallback<T>(run: (model: string) => Promise<T>): Promise<T> {
 
   for (const [index, model] of sequence.entries()) {
     try {
-      return await run(model);
+      const value = await run(model);
+      onModel?.(model);
+      return value;
     } catch (error) {
       lastError = error;
       if (!retryable(error) || index === sequence.length - 1) break;
@@ -191,7 +196,11 @@ async function withFallback<T>(run: (model: string) => Promise<T>): Promise<T> {
   throw lastError;
 }
 
-export async function generateText(system: string, prompt: string): Promise<string> {
+export async function generateText(
+  system: string,
+  prompt: string,
+  onModel?: (model: string) => void,
+): Promise<string> {
   return withFallback((model) =>
     callGemini(
       model,
@@ -202,12 +211,14 @@ export async function generateText(system: string, prompt: string): Promise<stri
       },
       20_000,
     ),
+    onModel,
   );
 }
 
 export async function generateRecommendations(
   system: string,
   prompt: string,
+  onModel?: (model: string) => void,
 ): Promise<RecommendationSet> {
   const text = await withFallback((model) =>
     callGemini(
@@ -224,6 +235,7 @@ export async function generateRecommendations(
       },
       30_000,
     ),
+    onModel,
   );
 
   let parsed: unknown;
@@ -303,7 +315,12 @@ export function buildContext(air: AirData): string {
 const DISCLAIMER =
   "Measurements are modelled, not from a regulatory monitor, and can differ from a station near you.";
 
-export async function chatReply(air: AirData, message: string, history: Array<{ role: "user" | "assistant"; content: string }>) {
+export async function chatReply(
+  air: AirData,
+  message: string,
+  history: Array<{ role: "user" | "assistant"; content: string }>,
+  onModel?: (model: string) => void,
+) {
   const context = buildContext(air);
   const transcript = history
     .slice(-6)
@@ -318,7 +335,7 @@ ${message}
 
 Answer in under 180 words. Use short paragraphs or a tight list. End with one line starting "Limits:" that names the main assumption. ${DISCLAIMER}`;
 
-  return generateText(SHARED_RULES, prompt);
+  return generateText(SHARED_RULES, prompt, onModel);
 }
 
 export type PlanProfile = {
@@ -329,7 +346,11 @@ export type PlanProfile = {
   concerns: string;
 };
 
-export async function dailyPlan(air: AirData, profile: PlanProfile) {
+export async function dailyPlan(
+  air: AirData,
+  profile: PlanProfile,
+  onModel?: (model: string) => void,
+) {
   const context = buildContext(air);
   const prompt = `CONTEXT
 ${context}
@@ -346,7 +367,7 @@ Build a one-day action plan for today in this location. Produce exactly 5 items 
 For each item fill slot (e.g. "Morning, 6–9am"), action (specific and doable today), why (tie it to the measured pollutants above), benefit (expected personal benefit, no invented numbers unless you compute it from the context), difficulty, and limitations (be honest about what it will not fix). Keep why, benefit and limitations to one sentence each.
 The summary must be two sentences that name the dominant pollutant and the single most important action today.`;
 
-  return generateRecommendations(SHARED_RULES, prompt);
+  return generateRecommendations(SHARED_RULES, prompt, onModel);
 }
 
 const explanationSchema = {
@@ -378,6 +399,7 @@ export async function explainDecision(
   air: AirData,
   report: DecisionReport,
   decisionId: DecisionId,
+  onModel?: (model: string) => void,
 ): Promise<DecisionExplanation> {
   const decision = report.decisions.find((item) => item.id === decisionId);
   if (!decision) throw new AiError("invalid_request", "Unknown decision.");
@@ -410,6 +432,7 @@ Explain this decision in plain language. Fill:
       },
       30_000,
     ),
+    onModel,
   );
 
   let parsed: unknown;
@@ -423,7 +446,11 @@ Explain this decision in plain language. Fill:
   return validated.data;
 }
 
-export async function indoorGuidance(air: AirData, household: string) {
+export async function indoorGuidance(
+  air: AirData,
+  household: string,
+  onModel?: (model: string) => void,
+) {
   const context = buildContext(air);
   const prompt = `CONTEXT
 ${context}
@@ -436,5 +463,5 @@ Give exactly 5 indoor air recommendations for this household today, given the ou
 For each item fill slot (e.g. "Ventilation", "Kitchen"), action, why, benefit, difficulty, and limitations. Keep why, benefit and limitations to one sentence each. Be explicit that indoor filtration does not remove outdoor pollution and that a purifier is not a substitute for reducing sources.
 The summary must state whether today is a day to ventilate or to keep windows closed in this location, and say which measurement led you to that call.`;
 
-  return generateRecommendations(SHARED_RULES, prompt);
+  return generateRecommendations(SHARED_RULES, prompt, onModel);
 }

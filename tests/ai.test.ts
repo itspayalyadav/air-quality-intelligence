@@ -104,8 +104,12 @@ describe("capacity errors", () => {
       .mockResolvedValueOnce(geminiResponse("answer from fallback"));
     vi.stubGlobal("fetch", fetchMock);
 
-    const text = await generateText("system", "prompt");
+    let servedModel = "";
+    const text = await generateText("system", "prompt", (model) => {
+      servedModel = model;
+    });
     expect(text).toBe("answer from fallback");
+    expect(servedModel).toBe("gemini-3.5-flash-lite");
     expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(String(fetchMock.mock.calls[0][0])).toContain("gemini-3.8-flash");
     expect(String(fetchMock.mock.calls[1][0])).toContain("gemini-3.8-flash");

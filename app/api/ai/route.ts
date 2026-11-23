@@ -137,15 +137,20 @@ export async function POST(request: NextRequest) {
       longitude: input.lon,
     });
 
+    let servedModel = activeModel();
+    const recordModel = (model: string) => {
+      servedModel = model;
+    };
+
     if (input.mode === "chat") {
-      const text = await chatReply(air, input.message, input.history);
-      return Response.json({ mode: "chat", text, model: activeModel(), configured: true });
+      const text = await chatReply(air, input.message, input.history, recordModel);
+      return Response.json({ mode: "chat", text, model: servedModel, configured: true });
     }
 
     if (input.mode === "plan") {
       try {
-        const data = await dailyPlan(air, input.profile);
-        return Response.json({ mode: "plan", data, model: activeModel(), configured: true });
+        const data = await dailyPlan(air, input.profile, recordModel);
+        return Response.json({ mode: "plan", data, model: servedModel, configured: true });
       } catch (error) {
         const unavailable =
           error instanceof AiError &&
@@ -165,19 +170,19 @@ export async function POST(request: NextRequest) {
     }
 
     if (input.mode === "indoor") {
-      const data = await indoorGuidance(air, input.household);
-      return Response.json({ mode: "indoor", data, model: activeModel(), configured: true });
+      const data = await indoorGuidance(air, input.household, recordModel);
+      return Response.json({ mode: "indoor", data, model: servedModel, configured: true });
     }
 
     // The engine runs here on freshly fetched readings; the browser cannot send a verdict.
     const profile: DecisionProfile = input.profile;
     const report = buildDecisions(air, profile);
-    const data = await explainDecision(air, report, input.decisionId);
+    const data = await explainDecision(air, report, input.decisionId, recordModel);
     return Response.json({
       mode: "explain",
       decisionId: input.decisionId,
       data,
-      model: activeModel(),
+      model: servedModel,
       configured: true,
     });
   } catch (error) {
