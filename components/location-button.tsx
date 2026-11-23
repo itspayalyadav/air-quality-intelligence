@@ -14,7 +14,14 @@ export function LocationButton() {
   const [results, setResults] = useState<CityResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 3200);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   useEffect(() => {
     if (!open) return;
@@ -69,6 +76,7 @@ export function LocationButton() {
     setOpen(false);
     setQuery("");
     setResults([]);
+    setToast(`Reading ${city.name}`);
   }
 
   return (
@@ -78,10 +86,11 @@ export function LocationButton() {
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-haspopup="dialog"
-        className="flex max-w-[60vw] items-center gap-2 rounded-full border border-line-strong bg-surface px-3 py-1.5 text-sm text-ink transition hover:border-stone-400 sm:max-w-none"
+        className="flex max-w-[60vw] items-center gap-2 rounded-full border-2 border-ink/15 bg-surface px-3 py-1.5 text-sm font-bold text-ink transition hover:border-accent sm:max-w-none"
       >
-        <LocateIcon className="h-3.5 w-3.5 text-ink-muted" />
+        <LocateIcon className="h-3.5 w-3.5 text-accent" />
         <span className="truncate">{place.name}</span>
+        <span className="bracket text-[11px] text-muted" aria-hidden="true">{"]"}</span>
         <ChevronIcon className="h-3.5 w-3.5 text-ink-muted" />
       </button>
 
@@ -95,7 +104,7 @@ export function LocationButton() {
           <div
             role="dialog"
             aria-label="Choose a location"
-            className="fixed inset-x-3 top-20 z-50 rounded-2xl border border-line bg-surface p-4 shadow-xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-96"
+            className="panel fixed inset-x-3 top-20 z-50 rounded-xl p-4 shadow-2xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-96"
           >
             <div className="mb-3 flex items-center justify-between">
               <p className="text-sm font-semibold text-ink">Choose a location</p>
@@ -173,6 +182,16 @@ export function LocationButton() {
             </div>
           </div>
         </>
+      ) : null}
+
+      {toast ? (
+        <div
+          role="status"
+          className="fixed bottom-5 right-5 z-50 flex items-center gap-3 rounded-lg border-2 border-ink bg-signal px-4 py-3 text-sm font-bold text-ink shadow-lg"
+        >
+          <span className="bracket text-base" aria-hidden="true">{"</>"}</span>
+          {toast}
+        </div>
       ) : null}
     </div>
   );

@@ -7,7 +7,7 @@ import { groundedRequest } from "@/lib/ai-client";
 import { AiErrorPanel, AiThinking } from "@/components/ai-status";
 import { RecommendationList } from "@/components/recommendation-list";
 import { ReadingChips } from "@/components/reading-chips";
-import { Card, EmptyState, SectionHeading, buttonPrimary, fieldClass } from "@/components/ui";
+import { Card, PageHeading, EmptyState, SectionHeading, buttonPrimary, fieldClass } from "@/components/ui";
 import { SparkIcon } from "@/components/icons";
 import type { AiRecommendationsResponse } from "@/lib/types";
 
@@ -76,16 +76,11 @@ export default function PlanPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
-      <div className="mb-5">
-        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-muted">Daily plan</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
-          Today, adjusted for the air
-        </h1>
-        <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-soft">
-          Tell it how your day works. Each item explains what to do, why it matters today, what you
-          get from it, and what it will not fix.
-        </p>
-      </div>
+      <PageHeading
+        eyebrow="Daily plan"
+        title="Today, adjusted for the air"
+        description="Tell it how your day works. Each item explains what to do, why it matters today, what you get from it, and what it will not fix."
+      />
 
       {air ? <ReadingChips air={air} place={place} /> : null}
 

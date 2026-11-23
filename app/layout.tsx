@@ -4,6 +4,7 @@ import "./globals.css";
 import { LocationProvider } from "@/lib/location";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { AppSidebar } from "@/components/app-sidebar";
 import { SHARE_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site";
 
 const manrope = Manrope({
@@ -56,7 +57,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f5f3ee",
+  themeColor: "#faf8f2",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -74,9 +75,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             Skip to content
           </a>
           <SiteHeader />
-          <main id="main" className="flex-1">
-            {children}
-          </main>
+          <div className="mx-auto flex w-full max-w-[1600px]">
+            <AppSidebar />
+            <main id="main" className="min-w-0 flex-1">
+              {children}
+            </main>
+          </div>
           <SiteFooter />
         </LocationProvider>
       </body>

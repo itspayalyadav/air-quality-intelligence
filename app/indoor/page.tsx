@@ -7,7 +7,7 @@ import { groundedRequest } from "@/lib/ai-client";
 import { AiErrorPanel, AiThinking } from "@/components/ai-status";
 import { RecommendationList } from "@/components/recommendation-list";
 import { ReadingChips } from "@/components/reading-chips";
-import { Card, EmptyState, SectionHeading, buttonPrimary, fieldClass } from "@/components/ui";
+import { Card, PageHeading, EmptyState, SectionHeading, buttonPrimary, fieldClass } from "@/components/ui";
 import { SparkIcon } from "@/components/icons";
 import type { AiRecommendationsResponse } from "@/lib/types";
 
@@ -56,16 +56,11 @@ export default function IndoorPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
-      <div className="mb-5">
-        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-muted">Indoor air</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
-          Make the inside of your home better
-        </h1>
-        <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-soft">
-          Outdoor pollution decides whether today is a ventilate day or a seal-the-windows day. These
-          recommendations are specific to that call.
-        </p>
-      </div>
+      <PageHeading
+        eyebrow="Indoor air"
+        title="Make the inside of your home better"
+        description="Outdoor pollution decides whether today is a ventilate day or a seal-the-windows day. These recommendations are specific to that call."
+      />
 
       {air ? (
         <ReadingChips air={air} place={place}>

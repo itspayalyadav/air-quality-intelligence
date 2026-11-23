@@ -2,19 +2,16 @@ import Link from "next/link";
 
 export function Wordmark({ href = "/dashboard" }: { href?: string }) {
   return (
-    <Link href={href} className="inline-flex items-center gap-2.5">
-      <span className="flex h-7 w-7 items-center justify-center bg-accent">
-        <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-          <g stroke="#ffffff" strokeWidth="1.9" strokeLinecap="round">
-            <path d="M5 8h9" />
-            <path d="M5 12h14" opacity="0.75" />
-            <path d="M5 16h6" opacity="0.5" />
-          </g>
-        </svg>
+    <Link href={href} className="group inline-flex items-center gap-2.5">
+      <span className="relative flex h-8 w-8 items-center justify-center bg-accent">
+        <span className="bracket text-[13px] leading-none text-white" aria-hidden="true">
+          {"</>"}
+        </span>
+        <span className="absolute -bottom-1 -right-1 h-2.5 w-2.5 bg-signal" aria-hidden="true" />
       </span>
-      <span className="text-[15px] font-semibold tracking-[-0.02em] text-ink">
-        Aeris{" "}
-        <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-ink-muted">
+      <span className="leading-none">
+        <span className="block text-[16px] font-extrabold tracking-[-0.045em] text-ink">Aeris</span>
+        <span className="mt-0.5 block text-[9px] font-bold uppercase tracking-[0.2em] text-ink-muted">
           Intelligence
         </span>
       </span>

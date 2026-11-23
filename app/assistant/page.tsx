@@ -7,7 +7,7 @@ import { groundedRequest } from "@/lib/ai-client";
 import { AiErrorPanel, AiThinking } from "@/components/ai-status";
 import { AiText } from "@/components/recommendation-list";
 import { ReadingChips } from "@/components/reading-chips";
-import { Card, EmptyState, buttonPrimary, fieldClass } from "@/components/ui";
+import { Card, PageHeading, EmptyState, buttonPrimary, fieldClass } from "@/components/ui";
 import { ArrowIcon, SparkIcon } from "@/components/icons";
 import type { AiTextResponse } from "@/lib/types";
 
@@ -54,17 +54,11 @@ export default function AssistantPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
-      <div className="mb-5">
-        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-muted">Assistant</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
-          Ask about the air where you are
-        </h1>
-        <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-soft">
-          Every answer is grounded in a server-side fetch of the readings for {place.name}. The model
-          never sees air quality numbers typed by the browser, and it is told to say what is missing
-          rather than invent it.
-        </p>
-      </div>
+      <PageHeading
+        eyebrow="Assistant"
+        title="Ask about the air where you are"
+        description={`Every answer is grounded in a server-side fetch of the readings for ${place.name}. The model never sees air quality numbers typed by the browser, and it is told to say what is missing rather than invent it.`}
+      />
 
       {air ? (
         <ReadingChips air={air} place={place} className="mb-4">

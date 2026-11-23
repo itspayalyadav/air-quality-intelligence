@@ -63,7 +63,7 @@ export function SiteFooter() {
 
   if (pathname !== "/") {
     return (
-      <footer className="mt-16 border-t border-line">
+      <footer className="mt-16 border-t-2 border-ink bg-surface">
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <Wordmark href="/dashboard" />
@@ -87,8 +87,8 @@ export function SiteFooter() {
   }
 
   return (
-    <footer className="border-t border-line">
-      <div className="mx-auto max-w-[1440px] px-5 pb-10 pt-16 sm:px-8 sm:pt-20 lg:px-12">
+    <footer className="grid-lines border-t-2 border-ink">
+      <div className="mx-auto max-w-[1440px] bg-canvas/80 px-5 pb-10 pt-16 sm:px-8 sm:pt-20 lg:px-12">
         <div className="grid gap-12 lg:grid-cols-[1.6fr_0.7fr_0.7fr_1fr]">
           <div>
             <Wordmark href="/" />

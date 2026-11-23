@@ -13,7 +13,7 @@ import {
 } from "@/lib/decision-engine";
 import type { AiExplainResponse } from "@/lib/types";
 import { AiErrorPanel, AiThinking } from "@/components/ai-status";
-import { Card, SectionHeading, Skeleton, buttonPrimary, fieldClass } from "@/components/ui";
+import { Card, PageHeading, SectionHeading, Skeleton, buttonPrimary, fieldClass } from "@/components/ui";
 import { SparkIcon } from "@/components/icons";
 
 const STANCE: Record<Stance, { label: string; className: string }> = {
@@ -126,20 +126,11 @@ export default function DecisionsPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-muted">
-            Decision engine
-          </p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
-            What should I do in {place.name}?
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-soft">
-            Four decisions made by transparent rules from the current readings and your context.
-            The AI explains them; it never chooses them.
-          </p>
-        </div>
-      </div>
+      <PageHeading
+        eyebrow="Decision engine"
+        title={`What should I do in ${place.name}?`}
+        description="Four decisions made by transparent rules from the current readings and your context. The AI explains them; it never chooses them."
+      />
 
       {error && !air ? (
         <Card className="border-amber-200 bg-amber-50/60">

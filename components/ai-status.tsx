@@ -60,7 +60,7 @@ const COPY: Record<string, { title: string; body: string; retryable: boolean }> 
 export function AiErrorPanel({ error, onRetry }: { error: AiError; onRetry?: () => void }) {
   const copy = COPY[error.code] ?? COPY.unknown;
   return (
-    <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4" role="alert">
+    <div className="rounded-lg border-2 border-amber-300 bg-amber-50 p-4" role="alert">
       <div className="flex items-start gap-2.5">
         <AlertIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
         <div>

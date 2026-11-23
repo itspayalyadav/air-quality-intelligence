@@ -7,7 +7,7 @@ import { groundedRequest } from "@/lib/ai-client";
 import { computeImpact, formatKg, TRAVEL_MODES, weeklyDistance } from "@/lib/impact";
 import { AiErrorPanel, AiThinking } from "@/components/ai-status";
 import { AiText } from "@/components/recommendation-list";
-import { Card, SectionHeading, buttonPrimary, fieldClass } from "@/components/ui";
+import { Card, PageHeading, SectionHeading, buttonPrimary, fieldClass } from "@/components/ui";
 import { SparkIcon } from "@/components/icons";
 import type { AiTextResponse } from "@/lib/types";
 
@@ -41,16 +41,11 @@ export default function ImpactPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
-      <div className="mb-5">
-        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-muted">Impact</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
-          Compare everyday travel choices
-        </h1>
-        <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-soft">
-          Emission factors are published planning figures, and every one of them is shown below the
-          table. Switching mode changes your own footprint; it does not, on its own, change citywide AQI.
-        </p>
-      </div>
+      <PageHeading
+        eyebrow="Impact"
+        title="Compare everyday travel choices"
+        description="Emission factors are published planning figures, and every one of them is shown below the table. Switching mode changes your own footprint; it does not, on its own, change citywide AQI."
+      />
 
       <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr]">
         <Card>

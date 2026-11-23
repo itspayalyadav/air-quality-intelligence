@@ -22,8 +22,8 @@ export function PollutantGrid({ air }: { air: AirData }) {
           return (
             <div
               key={key}
-              className={`rounded-xl border bg-surface p-3.5 ${
-                primary ? "border-stone-400" : "border-line"
+              className={`panel-flat rounded-lg p-3.5 ${
+                primary ? "border-accent" : "border-line"
               }`}
             >
               <div className="flex items-baseline justify-between">
@@ -38,9 +38,9 @@ export function PollutantGrid({ air }: { air: AirData }) {
                 {reading?.value == null ? "—" : Math.round(reading.value)}
                 <span className="ml-1 text-[10px] font-sans text-ink-muted">{meta.unit}</span>
               </p>
-              <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-stone-100">
+              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-line">
                 <div
-                  className="h-full rounded-full bg-stone-500"
+                  className="h-full rounded-full bg-accent"
                   style={{ width: `${Math.round(share * 100)}%` }}
                 />
               </div>

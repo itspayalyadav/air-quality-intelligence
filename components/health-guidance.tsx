@@ -14,12 +14,12 @@ export function HealthGuidance({ band, value }: { band: Band | null; value: numb
   return (
     <section
       aria-label="Health and activity guidance"
-      className="rise flex flex-col rounded-2xl border p-5 sm:p-6"
+      className="rise flex flex-col rounded-xl border-2 p-5 sm:p-6"
       style={{ backgroundColor: band?.soft ?? "#fafaf9", borderColor: band?.border ?? "#e7e5e4" }}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2
-          className="flex items-center gap-2 text-sm font-semibold"
+          className="flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide"
           style={{ color: band?.color ?? "#1c1917" }}
         >
           <ShieldIcon className="h-4 w-4" />

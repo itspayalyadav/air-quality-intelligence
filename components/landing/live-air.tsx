@@ -30,7 +30,7 @@ export function HeroReading({ className = "" }: { className?: string }) {
 
   return (
     <div
-      className={`border border-line-strong bg-surface shadow-[0_40px_80px_-50px_rgba(23,28,36,0.55)] ${className}`}
+      className={`panel shadow-[0_40px_80px_-50px_rgba(23,28,36,0.55)] ${className}`}
       data-testid="hero-reading"
     >
       <div className="h-[3px] bg-accent" aria-hidden="true" />
@@ -113,14 +113,14 @@ export function LiveAirSection() {
   const age = air ? ageLabel(air.observedAt) : null;
 
   return (
-    <section id="live-air" aria-labelledby="live-air-heading" className="border-b border-line">
+    <section id="live-air" aria-labelledby="live-air-heading" className="border-b-2 border-ink">
       <div className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-24 lg:px-12">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent">
           Live air intelligence
         </p>
         <h2
           id="live-air-heading"
-          className="mt-4 max-w-[20ch] text-[clamp(2rem,4vw,3.4rem)] font-semibold leading-[1.05] tracking-[-0.035em] text-ink"
+          className="mt-4 max-w-[20ch] text-[clamp(2rem,4vw,3.4rem)] font-extrabold leading-[1.02] tracking-[-0.05em] text-ink"
         >
           A number you can trace back to its source.
         </h2>
@@ -129,7 +129,7 @@ export function LiveAirSection() {
           index and the CPCB estimate, and see what each one actually represents.
         </p>
 
-        <div className="mt-12 border border-line-strong bg-surface">
+        <div className="mt-12 panel">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4 sm:px-7">
             <div className="flex items-center gap-3">
               <span className="h-2 w-2 rounded-full bg-[#15803d]" aria-hidden="true" />
@@ -207,13 +207,13 @@ export function LiveAirSection() {
               ) : null}
 
               <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
-                <div className="flex flex-col border-b border-line bg-accent-soft/50 px-5 py-8 sm:px-7 lg:border-b-0 lg:border-r">
+                <div className="flex flex-col border-b border-line bg-signal-soft px-5 py-8 sm:px-7 lg:border-b-0 lg:border-r">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-soft">
                       {standard === "us" ? "Open-Meteo US AQI" : "CPCB estimate"}
                     </p>
                     <div
-                      className="inline-flex rounded-full border border-line-strong bg-surface p-0.5"
+                      className="inline-flex rounded-full border-2 border-line bg-canvas p-0.5"
                       role="group"
                       aria-label="AQI standard"
                     >
@@ -242,7 +242,7 @@ export function LiveAirSection() {
 
                   <div className="mt-6 flex flex-wrap items-end gap-4">
                     <p
-                      className="tnum text-[clamp(4.5rem,9vw,7rem)] font-semibold leading-[0.8] tracking-[-0.05em]"
+                      className="tnum text-[clamp(4.5rem,9vw,7rem)] font-extrabold leading-[0.8] tracking-[-0.05em]"
                       style={{ color: band?.color ?? "var(--color-ink)" }}
                       data-testid="landing-aqi"
                     >
@@ -415,7 +415,7 @@ export function AiContextPanel() {
   ];
 
   return (
-    <div className="border border-line-strong bg-surface">
+    <div className="panel">
       <div className="h-[3px] bg-accent" aria-hidden="true" />
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-3.5">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink">

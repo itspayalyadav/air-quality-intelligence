@@ -6,7 +6,7 @@ import type { AirData } from "@/lib/types";
 import { PollutantGrid, StaleNotice } from "@/components/pollutant-grid";
 import { TrendChart } from "@/components/trend-chart";
 import { WeatherStrip } from "@/components/weather-strip";
-import { Card, EmptyState, SectionHeading, Skeleton } from "@/components/ui";
+import { Card, PageHeading, EmptyState, SectionHeading, Skeleton } from "@/components/ui";
 import { AlertIcon } from "@/components/icons";
 
 function thresholdAlert(air: AirData) {
@@ -29,16 +29,11 @@ export default function InsightsPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
-      <div className="mb-5">
-        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-muted">Insights</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
-          {place.name} in context
-        </h1>
-        <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-soft">
-          Pollutant breakdown, seven-day history and the weather that decides how fast today&apos;s
-          pollution clears.
-        </p>
-      </div>
+      <PageHeading
+        eyebrow="Insights"
+        title={`${place.name} in context`}
+        description="Pollutant breakdown, seven-day history and the weather that decides how fast today's pollution clears."
+      />
 
       {error ? (
         <p className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-sm text-amber-900">

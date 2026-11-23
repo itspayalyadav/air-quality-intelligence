@@ -1,6 +1,8 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
+import { buildDecisions } from "@/lib/decision-engine";
 import { useLocation } from "@/lib/location";
 import { useAiRequest } from "@/lib/use-ai";
 import { groundedRequest } from "@/lib/ai-client";
@@ -11,7 +13,7 @@ import { TrendChart } from "@/components/trend-chart";
 import { WeatherStrip } from "@/components/weather-strip";
 import { AiErrorPanel, AiThinking } from "@/components/ai-status";
 import { AiText } from "@/components/recommendation-list";
-import { Card, SectionHeading, Skeleton, buttonPrimary, buttonSecondary } from "@/components/ui";
+import { Card, PageHeading, SectionHeading, Skeleton, buttonPrimary, buttonSecondary } from "@/components/ui";
 import { ArrowIcon, SparkIcon } from "@/components/icons";
 
 const QUICK_LINKS = [
@@ -25,6 +27,7 @@ const QUICK_LINKS = [
 export default function DashboardPage() {
   const { air, loading, error, refresh, place } = useLocation();
   const briefing = useAiRequest<AiTextResponse>();
+  const decisions = useMemo(() => (air ? buildDecisions(air) : null), [air]);
 
   function generateBriefing() {
     if (!air) return;
@@ -38,23 +41,17 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-muted">
-            Air quality dashboard
-          </p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
-            {place.name}
-          </h1>
-          <p className="mt-1 text-sm text-ink-soft">
-            Modelled hourly readings, with US and CPCB index side by side.
-          </p>
-        </div>
-        <Link href="/assistant" className={buttonSecondary}>
-          <SparkIcon className="h-4 w-4" />
-          Open assistant
-        </Link>
-      </div>
+      <PageHeading
+        eyebrow="Air quality dashboard"
+        title={place.name}
+        description="Modelled hourly readings, with US and CPCB index side by side."
+        action={
+          <Link href="/assistant" className={buttonSecondary}>
+            <SparkIcon className="h-4 w-4" />
+            Open assistant
+          </Link>
+        }
+      />
 
       {error && !air ? (
         <Card className="border-amber-200 bg-amber-50/60">
@@ -83,6 +80,50 @@ export default function DashboardPage() {
           <StaleNotice air={air} />
 
           <AqiHero air={air} onRefresh={refresh} refreshing={loading} />
+
+          {decisions ? (
+            <Card>
+              <SectionHeading
+                eyebrow="Decision engine"
+                title="The call for right now"
+                description={decisions.topAction}
+                action={
+                  <Link href="/decisions" className={buttonSecondary}>
+                    All four decisions
+                    <ArrowIcon className="h-3.5 w-3.5" />
+                  </Link>
+                }
+              />
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {decisions.decisions.map((decision, index) => (
+                  <div key={decision.id} className="panel-flat rounded-lg p-4">
+                    <p className="eyebrow flex items-center justify-between">
+                      <span className="bracket text-accent">0{index + 1}</span>
+                      <span
+                        className={
+                          decision.stance === "avoid"
+                            ? "text-red-700"
+                            : decision.stance === "caution"
+                              ? "text-amber-700"
+                              : decision.stance === "go"
+                                ? "text-emerald-700"
+                                : "text-ink-muted"
+                        }
+                      >
+                        {decision.stance}
+                      </span>
+                    </p>
+                    <p className="mt-2 text-sm font-extrabold leading-snug text-ink">
+                      {decision.title}
+                    </p>
+                    <p className="mt-1 text-[12px] leading-snug text-ink-soft">
+                      {decision.headline}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          ) : null}
 
           <PollutantGrid air={air} />
 
@@ -146,18 +187,19 @@ export default function DashboardPage() {
             </div>
           </Card>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {QUICK_LINKS.map((link) => (
+          <div className="grid gap-3 border-t-2 border-ink pt-6 sm:grid-cols-2 lg:grid-cols-5">
+            {QUICK_LINKS.map((link, index) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="group rounded-xl border border-line bg-surface p-4 transition hover:border-stone-400"
+                className="panel-flat group rounded-lg p-4 transition hover:border-accent"
               >
-                <p className="flex items-center justify-between text-sm font-medium text-ink">
-                  {link.title}
-                  <ArrowIcon className="h-3.5 w-3.5 text-ink-muted transition group-hover:translate-x-0.5" />
+                <p className="eyebrow flex items-center justify-between">
+                  <span className="bracket text-accent">0{index + 1}</span>
+                  <ArrowIcon className="h-3.5 w-3.5 text-accent transition group-hover:translate-x-1" />
                 </p>
-                <p className="mt-1 text-[13px] leading-relaxed text-ink-soft">{link.body}</p>
+                <p className="mt-2 text-sm font-extrabold leading-snug text-ink">{link.title}</p>
+                <p className="mt-1 text-[12px] leading-relaxed text-ink-soft">{link.body}</p>
               </Link>
             ))}
           </div>

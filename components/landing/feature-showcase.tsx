@@ -57,11 +57,11 @@ export function FeatureShowcase() {
   const selected = TRAVEL_MODES.find((item) => item.id === mode) ?? TRAVEL_MODES[0];
 
   return (
-    <section id="features" aria-labelledby="features-heading" className="border-b border-line">
+    <section id="features" aria-labelledby="features-heading" className="border-b-2 border-ink">
       <div className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
         <h2
           id="features-heading"
-          className="max-w-[22ch] text-[clamp(2rem,4vw,3.4rem)] font-semibold leading-[1.05] tracking-[-0.035em] text-ink"
+          className="max-w-[22ch] text-[clamp(2rem,4vw,3.4rem)] font-extrabold leading-[1.02] tracking-[-0.05em] text-ink"
         >
           Six ways to work with the same reading.
         </h2>
@@ -72,10 +72,10 @@ export function FeatureShowcase() {
 
         <div className="mt-16 space-y-24 sm:mt-20 sm:space-y-28">
           {/* 01 Dashboard: live instrument plate */}
-          <article className="border-t border-line-strong pt-10" data-reveal>
+          <article className="border-t-2 border-ink pt-10" data-reveal>
             <div className="flex flex-wrap items-end justify-between gap-6">
               <div>
-                <h3 className="max-w-[22ch] text-[clamp(1.6rem,2.6vw,2.3rem)] font-semibold leading-[1.1] tracking-[-0.03em] text-ink">
+                <h3 className="max-w-[22ch] text-[clamp(1.6rem,2.6vw,2.3rem)] font-extrabold leading-[1.06] tracking-[-0.045em] text-ink">
                   Every pollutant, on one screen.
                 </h3>
                 <p className="mt-3 max-w-lg text-[15px] leading-[1.7] text-ink-soft">
@@ -86,12 +86,12 @@ export function FeatureShowcase() {
               <FeatureLink href="/dashboard" label="Explore Dashboard" />
             </div>
 
-            <div className="mt-8 border border-line-strong bg-surface">
+            <div className="mt-8 panel">
               <div className="h-[3px] bg-accent" aria-hidden="true" />
               {air ? (
                 <>
                   <div className="grid lg:grid-cols-[0.72fr_1.28fr]">
-                    <div className="border-b border-line bg-accent-soft/50 p-5 sm:p-7 lg:border-b-0 lg:border-r">
+                    <div className="border-b border-line bg-signal-soft p-5 sm:p-7 lg:border-b-0 lg:border-r">
                       <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
                         US AQI, {place.name}
                       </p>
@@ -159,8 +159,8 @@ export function FeatureShowcase() {
           </article>
 
           {/* 02 Assistant: dark product surface */}
-          <article className="border-t border-line-strong pt-10" data-reveal>
-            <h3 className="max-w-[26ch] text-[clamp(1.6rem,2.6vw,2.3rem)] font-semibold leading-[1.1] tracking-[-0.03em] text-ink">
+          <article className="border-t-2 border-ink pt-10" data-reveal>
+            <h3 className="max-w-[26ch] text-[clamp(1.6rem,2.6vw,2.3rem)] font-extrabold leading-[1.06] tracking-[-0.045em] text-ink">
               A conversation anchored in today&apos;s numbers.
             </h3>
             <p className="mt-3 max-w-lg text-[15px] leading-[1.7] text-ink-soft">
@@ -259,10 +259,10 @@ export function FeatureShowcase() {
           </article>
 
           {/* 03 Planner: soft blue band */}
-          <article className="-mx-5 border-y border-line bg-accent-soft/60 px-5 py-12 sm:-mx-8 sm:px-8 sm:py-14 lg:-mx-12 lg:px-12" data-reveal>
+          <article className="-mx-5 border-y border-line bg-signal-soft px-5 py-12 sm:-mx-8 sm:px-8 sm:py-14 lg:-mx-12 lg:px-12" data-reveal>
             <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
               <div className="flex flex-col">
-                <h3 className="max-w-[18ch] text-[clamp(1.6rem,2.6vw,2.3rem)] font-semibold leading-[1.1] tracking-[-0.03em] text-ink">
+                <h3 className="max-w-[18ch] text-[clamp(1.6rem,2.6vw,2.3rem)] font-extrabold leading-[1.06] tracking-[-0.045em] text-ink">
                   A day arranged around the reading.
                 </h3>
                 <p className="mt-3 max-w-sm text-[15px] leading-[1.7] text-ink-soft">
@@ -318,8 +318,8 @@ export function FeatureShowcase() {
           </article>
 
           {/* 04 Indoor: asymmetric decision panels */}
-          <article className="border-t border-line-strong pt-10" data-reveal>
-            <h3 className="max-w-[26ch] text-[clamp(1.6rem,2.6vw,2.3rem)] font-semibold leading-[1.1] tracking-[-0.03em] text-ink">
+          <article className="border-t-2 border-ink pt-10" data-reveal>
+            <h3 className="max-w-[26ch] text-[clamp(1.6rem,2.6vw,2.3rem)] font-extrabold leading-[1.06] tracking-[-0.045em] text-ink">
               A decision about your windows, not just a number.
             </h3>
             <p className="mt-3 max-w-lg text-[15px] leading-[1.7] text-ink-soft">
@@ -331,7 +331,7 @@ export function FeatureShowcase() {
             </div>
 
             <div className="mt-8 grid gap-4 lg:grid-cols-[0.62fr_1.38fr] lg:items-start">
-              <div className="border border-line-strong bg-surface p-6 sm:p-8">
+              <div className="panel p-6 sm:p-8">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
                   Outdoor PM2.5
                 </p>
@@ -370,10 +370,10 @@ export function FeatureShowcase() {
           </article>
 
           {/* 05 Impact: interactive comparison */}
-          <article className="border-t border-line-strong pt-10" data-reveal>
+          <article className="border-t-2 border-ink pt-10" data-reveal>
             <div className="flex flex-wrap items-end justify-between gap-6">
               <div>
-                <h3 className="max-w-[20ch] text-[clamp(1.6rem,2.6vw,2.3rem)] font-semibold leading-[1.1] tracking-[-0.03em] text-ink">
+                <h3 className="max-w-[20ch] text-[clamp(1.6rem,2.6vw,2.3rem)] font-extrabold leading-[1.06] tracking-[-0.045em] text-ink">
                   Make the trade-off visible.
                 </h3>
                 <p className="mt-3 max-w-lg text-[15px] leading-[1.7] text-ink-soft">
@@ -384,7 +384,7 @@ export function FeatureShowcase() {
               <FeatureLink href="/impact" label="Compare a commute" />
             </div>
 
-            <div className="mt-8 border border-line-strong bg-surface p-5 sm:p-8">
+            <div className="mt-8 panel p-5 sm:p-8">
               <div className="grid gap-10 lg:grid-cols-[0.7fr_1.3fr] lg:gap-16">
                 <div>
                   <div className="flex items-end justify-between gap-4">
@@ -476,9 +476,9 @@ export function FeatureShowcase() {
           </article>
 
           {/* 06 Insights: real chart, right aligned heading */}
-          <article className="border-t border-line-strong pt-10" data-reveal>
+          <article className="border-t-2 border-ink pt-10" data-reveal>
             <div className="flex flex-col gap-4 lg:items-end lg:text-right">
-              <h3 className="max-w-[26ch] text-[clamp(1.6rem,2.6vw,2.3rem)] font-semibold leading-[1.1] tracking-[-0.03em] text-ink">
+              <h3 className="max-w-[26ch] text-[clamp(1.6rem,2.6vw,2.3rem)] font-extrabold leading-[1.06] tracking-[-0.045em] text-ink">
                 A spike means more with context.
               </h3>
               <p className="max-w-lg text-[15px] leading-[1.7] text-ink-soft">
@@ -488,7 +488,7 @@ export function FeatureShowcase() {
               <FeatureLink href="/insights" label="Read the insights" />
             </div>
 
-            <div className="mt-8 border border-line-strong bg-surface p-5 sm:p-8">
+            <div className="mt-8 panel p-5 sm:p-8">
               <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-line pb-4">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
                   PM2.5, last seven days

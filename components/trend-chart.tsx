@@ -43,7 +43,7 @@ export function TrendChart({ history }: { history: History }) {
         <p className="text-xs text-ink-muted">peak {Math.round(peak)} µg/m³</p>
       </div>
 
-      <div className="relative h-44 w-full sm:h-52">
+      <div className="relative h-44 w-full rounded-lg bg-canvas sm:h-52">
         <svg
           viewBox={`0 0 ${width} ${height}`}
           preserveAspectRatio="none"
@@ -53,8 +53,8 @@ export function TrendChart({ history }: { history: History }) {
         >
           <defs>
             <linearGradient id="pm25-fill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#57534e" stopOpacity="0.20" />
-              <stop offset="100%" stopColor="#57534e" stopOpacity="0" />
+              <stop offset="0%" stopColor="#2563eb" stopOpacity="0.20" />
+              <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
             </linearGradient>
           </defs>
 
@@ -65,7 +65,7 @@ export function TrendChart({ history }: { history: History }) {
               x2={width}
               y1={height * fraction}
               y2={height * fraction}
-              stroke="#e7e5e4"
+              stroke="#e7e3d9"
               strokeWidth={1}
               vectorEffect="non-scaling-stroke"
             />
@@ -87,8 +87,8 @@ export function TrendChart({ history }: { history: History }) {
           <path
             d={line}
             fill="none"
-            stroke="#1c1917"
-            strokeWidth={1.8}
+            stroke="#2563eb"
+            strokeWidth={2.2}
             strokeLinejoin="round"
             strokeLinecap="round"
             vectorEffect="non-scaling-stroke"
@@ -104,7 +104,7 @@ export function TrendChart({ history }: { history: History }) {
 
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-ink-muted">
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-0.5 w-4 rounded bg-ink" /> hourly PM2.5
+          <span className="h-0.5 w-4 rounded bg-accent" /> hourly PM2.5
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="h-0.5 w-4 rounded border-t border-dashed border-red-700" /> India 24 h standard, 60 µg/m³

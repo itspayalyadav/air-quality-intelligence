@@ -13,13 +13,13 @@ const DIFFICULTY_STYLE: Record<string, string> = {
 export function RecommendationList({ set }: { set: RecommendationSet }) {
   return (
     <div className="space-y-3">
-      <p className="rounded-xl border border-line bg-stone-50/70 px-4 py-3 text-sm leading-relaxed text-ink">
+      <p className="rounded-lg border border-line bg-canvas px-4 py-3 text-sm leading-relaxed text-ink">
         {set.summary}
       </p>
 
       <ol className="space-y-3">
         {set.items.map((item, index) => (
-          <li key={`${item.slot}-${index}`} className="rounded-xl border border-line bg-surface p-4">
+          <li key={`${item.slot}-${index}`} className="panel-flat rounded-lg p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-muted">
                 {item.slot}

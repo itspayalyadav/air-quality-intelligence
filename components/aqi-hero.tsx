@@ -40,7 +40,7 @@ export function AqiHero({
           </div>
 
           <div
-            className="inline-flex rounded-full border border-line bg-stone-50 p-0.5"
+            className="inline-flex rounded-full border-2 border-line bg-canvas p-0.5"
             role="group"
             aria-label="AQI standard"
           >
@@ -57,7 +57,7 @@ export function AqiHero({
                 onClick={() => setStandard(option.id)}
                 className={`rounded-full px-3 py-1 text-xs font-medium transition ${
                   standard === option.id
-                    ? "bg-surface text-ink shadow-sm ring-1 ring-line"
+                    ? "bg-accent text-white"
                     : "text-ink-muted hover:text-ink"
                 }`}
               >
@@ -70,7 +70,7 @@ export function AqiHero({
         <div className="mt-5 flex items-end gap-4">
           <p
             data-testid="aqi-value"
-            className="tnum text-[76px] font-semibold leading-[0.85] tracking-[-0.03em] sm:text-[92px]"
+            className="tnum text-[76px] font-extrabold leading-[0.85] tracking-[-0.05em] sm:text-[92px]"
             style={{ color: band?.color ?? "#78716c" }}
           >
             {value == null ? "—" : Math.round(value)}
@@ -112,7 +112,7 @@ export function AqiHero({
             type="button"
             onClick={onRefresh}
             disabled={refreshing}
-            className="inline-flex items-center gap-1.5 rounded-full border border-line-strong bg-surface px-3 py-1.5 text-xs font-medium text-ink-soft transition hover:border-stone-400 hover:text-ink disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink/15 bg-surface px-3 py-1.5 text-xs font-bold text-ink-soft transition hover:border-stone-400 hover:text-ink disabled:opacity-60"
           >
             <RefreshIcon className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
             {refreshing ? "Refreshing" : "Refresh"}
