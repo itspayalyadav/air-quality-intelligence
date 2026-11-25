@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LocationButton } from "./location-button";
 import { Wordmark } from "./wordmark";
 import { ArrowIcon, CloseIcon } from "./icons";
@@ -51,9 +51,16 @@ function AppNavLink({
 export function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const menuTriggerRef = useRef<HTMLButtonElement>(null);
+  const wasOpenRef = useRef(false);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      if (wasOpenRef.current) menuTriggerRef.current?.focus();
+      wasOpenRef.current = false;
+      return;
+    }
+    wasOpenRef.current = true;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
@@ -98,6 +105,7 @@ export function SiteHeader() {
               Explore Dashboard
             </Link>
             <button
+              ref={menuTriggerRef}
               type="button"
               onClick={() => setOpen((value) => !value)}
               aria-expanded={open}

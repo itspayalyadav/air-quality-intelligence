@@ -170,7 +170,9 @@ npm run test:e2e   # playwright (build first)
 - Readings are fetched server-side, so a malicious client cannot make the model reason about invented pollution
 - Rate limiting: AI 12, air 30 and city search 20 requests per client per minute with `Retry-After`. Only the platform-written `x-vercel-forwarded-for` header is trusted for client identity; spoofable headers are ignored
 - Upstream Open-Meteo, geocoding and Gemini payloads are validated with Zod before use; malformed data becomes a controlled error, never a fabricated AQI
-- Security headers on every route: Content-Security-Policy, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` and `Permissions-Policy`
+- Security headers on every route: Content-Security-Policy, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` and `Permissions-Policy`. `connect-src` is limited to the app origin because Gemini is called server-side
+- CSP nonce evaluation: a per-request nonce in `proxy.ts` would require forcing dynamic rendering on every statically prerendered page, losing CDN caching. A report-only trial produced zero nonce attributes in the static HTML, so the current static policy with `script-src 'unsafe-inline'` is retained and documented as a trade-off
+- The location dialog uses `aria-modal`, a Tab trap and focus restoration; the mobile menu restores focus to its toggle on close
 - Explicit refreshes and precise device locations use `private, no-store` so they never enter a shared cache
 - Public error responses use fixed copy; diagnostics stay in server logs
 - Prompts forbid fabricated readings, citywide claims, medical diagnoses and invented station names
@@ -187,9 +189,9 @@ All gates were run locally on Node 26.8.1 / npm 11.19.0 with these results:
 |---|---|---|
 | Strict TypeScript | `npm run typecheck` | passed |
 | Lint | `npm run lint` | passed |
-| Unit tests | `npm test` | 106 passed, 13 files |
+| Unit tests | `npm test` | 112 passed, 14 files |
 | Build | `npm run build` | passed |
-| Browser / axe / responsive | `npm run test:e2e` | 45 passed |
+| Browser / axe / responsive | `npm run test:e2e` | 50 passed |
 | Dependency audit | `npm run audit` | 0 high/critical vulnerabilities |
 
 The suite covers:
@@ -201,7 +203,7 @@ The suite covers:
 - Impact factors, rate limiting, history trend, HTTP error parsing
 - API route contracts: invalid bodies/coordinates, spoofed forwarding headers, missing key, refresh cache headers
 - AI edge cases: timeout, blocked output, malformed envelope, 500 upstream, HTTP-date `Retry-After`, model fallback and serving-model reporting
-- Browser: live data, location search, invalid location, missing key, Gemini failure, deterministic Daily Plan fallback, US/CPCB toggle, responsive layouts at 360–1440 px, axe accessibility scans
+- Browser: live data, location search, invalid location, missing key, Gemini failure, deterministic plan/indoor/explain fallbacks, US/CPCB toggle, responsive layouts at 360–1440 px, axe scans including the open location dialog, keyboard-only Tab-trap/Escape/focus-restoration tests
 
 Local production-server smoke test: `/`, `/dashboard`, `/decisions`, `/plan`, `/indoor`, `/insights`, `/api/air`, `/api/cities`, `/robots.txt` and `/sitemap.xml` all returned 200; `/api/ai` returned 503 `missing_key` as designed when no key was set. A live Delhi reading returned PM2.5 99.7 µg/m³, US AQI 218 and CPCB AQI 231 with `observedAt` 2026-11-22T20:30 and `stale: false`. The same checks were repeated against the Vercel production URL after configuring the key; see [Deployment](#deployment).
 
@@ -218,6 +220,7 @@ Grounding controls in `lib/ai.ts`:
 - Structured output is requested with a JSON schema, then validated with zod.
 - Wrong-shape, empty or unparsable answers are discarded and the rule-based copy is shown instead.
 - If no API key is configured, the deterministic verdicts still render; only the assistant is unavailable.
+- If both models are temporarily unavailable, Daily Plan, Indoor and Explain return rule-based answers labelled `fallback: "deterministic"`. The Assistant keeps an honest 503 and links to the rule-based decisions; it never invents a chat answer.
 
 Generated copy was reviewed manually across the dashboard, decisions, plan and indoor pages. No GenAI-generated image, video or audio is used; the photography in `public/images` is the source asset carried over from the audited project.
 

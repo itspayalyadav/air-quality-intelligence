@@ -2,13 +2,29 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
 const getAirData = vi.hoisted(() => vi.fn());
+const aiMocks = vi.hoisted(() => ({
+  dailyPlan: vi.fn(),
+  indoorGuidance: vi.fn(),
+  explainDecision: vi.fn(),
+}));
 vi.mock("@/lib/air", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/air")>();
   return { ...actual, getAirData };
 });
+vi.mock("@/lib/ai", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/ai")>();
+  return {
+    ...actual,
+    dailyPlan: aiMocks.dailyPlan,
+    indoorGuidance: aiMocks.indoorGuidance,
+    explainDecision: aiMocks.explainDecision,
+  };
+});
 
 import { POST as aiPost } from "@/app/api/ai/route";
 import { GET as airGet } from "@/app/api/air/route";
+import { AiError } from "@/lib/ai";
+import { airFixture } from "../e2e/fixture";
 
 const ORIGINAL_KEY = process.env.GEMINI_API_KEY;
 const place = { name: "New Delhi", admin: "Delhi", country: "India", countryCode: "IN" };
@@ -25,6 +41,9 @@ function aiRequest(payload: unknown, headers: Record<string, string> = {}) {
 beforeEach(() => {
   process.env.GEMINI_API_KEY = "test-key";
   getAirData.mockReset();
+  aiMocks.dailyPlan.mockReset();
+  aiMocks.indoorGuidance.mockReset();
+  aiMocks.explainDecision.mockReset();
 });
 
 afterEach(() => {
@@ -76,6 +95,70 @@ describe("/api/ai contract", () => {
     expect(response.status).toBe(503);
     const json = (await response.json()) as { error: { code: string } };
     expect(json.error.code).toBe("missing_key");
+  });
+});
+
+describe("consistent deterministic degradation", () => {
+  const transient = () => new AiError("busy", "capacity");
+
+  it("returns rule-based indoor guidance when both models are unavailable", async () => {
+    getAirData.mockResolvedValue(airFixture());
+    aiMocks.indoorGuidance.mockRejectedValue(transient());
+    const response = await aiPost(
+      aiRequest(
+        { mode: "indoor", lat: 28.6139, lon: 77.209, place, household: "A city flat" },
+        { "x-vercel-forwarded-for": "203.0.113.40" },
+      ),
+    );
+    expect(response.status).toBe(200);
+    const json = (await response.json()) as {
+      fallback?: string;
+      model: string;
+      data: { items: unknown[] };
+    };
+    expect(json.fallback).toBe("deterministic");
+    expect(json.model).toBe("deterministic");
+    expect(json.data.items).toHaveLength(5);
+  });
+
+  it("returns the existing deterministic decision when explanation is unavailable", async () => {
+    getAirData.mockResolvedValue(airFixture());
+    aiMocks.explainDecision.mockRejectedValue(transient());
+    const response = await aiPost(
+      aiRequest(
+        {
+          mode: "explain",
+          lat: 28.6139,
+          lon: 77.209,
+          place,
+          decisionId: "outdoor",
+          profile: { sensitive: false, intensity: "normal", commute: "transit" },
+        },
+        { "x-vercel-forwarded-for": "203.0.113.41" },
+      ),
+    );
+    expect(response.status).toBe(200);
+    const json = (await response.json()) as {
+      fallback?: string;
+      data: { headline: string; why: string };
+    };
+    expect(json.fallback).toBe("deterministic");
+    expect(json.data.headline.length).toBeGreaterThan(0);
+    expect(json.data.why).toContain("AQI");
+  });
+
+  it("keeps non-transient AI failures as errors instead of inventing a fallback", async () => {
+    getAirData.mockResolvedValue(airFixture());
+    aiMocks.indoorGuidance.mockRejectedValue(new AiError("bad_output", "broken"));
+    const response = await aiPost(
+      aiRequest(
+        { mode: "indoor", lat: 28.6139, lon: 77.209, place, household: "A city flat" },
+        { "x-vercel-forwarded-for": "203.0.113.42" },
+      ),
+    );
+    expect(response.status).toBe(502);
+    const json = (await response.json()) as { error: { code: string } };
+    expect(json.error.code).toBe("bad_output");
   });
 });
 

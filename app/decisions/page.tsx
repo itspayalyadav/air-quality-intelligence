@@ -12,7 +12,7 @@ import {
   type Stance,
 } from "@/lib/decision-engine";
 import type { AiExplainResponse } from "@/lib/types";
-import { AiErrorPanel, AiThinking } from "@/components/ai-status";
+import { AiErrorPanel, AiFallbackNotice, AiThinking } from "@/components/ai-status";
 import { Card, PageHeading, SectionHeading, Skeleton, buttonPrimary, fieldClass } from "@/components/ui";
 import { SparkIcon } from "@/components/icons";
 
@@ -93,6 +93,12 @@ function DecisionCard({
           ) : null}
           {explain.data ? (
             <div className="rounded-xl border border-line bg-stone-50/70 p-4">
+              {explain.data.fallback === "deterministic" ? (
+                <AiFallbackNotice>
+                  Both AI models were temporarily unavailable. This explanation is the rule and
+                  evidence from the deterministic engine, not AI-generated text.
+                </AiFallbackNotice>
+              ) : null}
               <p className="text-sm font-medium text-ink">{explain.data.data.headline}</p>
               <p className="mt-2 text-[13px] leading-relaxed text-ink-soft">{explain.data.data.why}</p>
               <p className="mt-2 text-[13px] leading-relaxed text-ink-soft">

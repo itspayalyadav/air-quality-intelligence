@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import type { AiClientError } from "@/lib/use-ai";
 import { AlertIcon, SparkIcon } from "./icons";
 import { Skeleton } from "./ui";
@@ -81,6 +82,16 @@ export function AiErrorPanel({ error, onRetry }: { error: AiClientError; onRetry
         </div>
       </div>
     </div>
+  );
+}
+
+/** Shown when rules answered because both models were temporarily unavailable. */
+export function AiFallbackNotice({ children }: { children?: ReactNode }) {
+  return (
+    <p className="mt-3 rounded-lg border-2 border-signal bg-signal-soft px-3 py-2 text-[12px] font-medium leading-relaxed text-ink">
+      {children ??
+        "Both AI models were temporarily unavailable. These actions came from Aeris's deterministic rules using the live readings; no AI answer was invented."}
+    </p>
   );
 }
 

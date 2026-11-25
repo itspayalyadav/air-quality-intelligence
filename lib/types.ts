@@ -115,4 +115,5 @@ export type AiExplainResponse = {
   data: DecisionExplanation;
   model: string;
   configured: boolean;
+  fallback?: "deterministic";
 };

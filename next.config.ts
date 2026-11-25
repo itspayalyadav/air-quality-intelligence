@@ -13,7 +13,8 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https:",
       "font-src 'self' data:",
-      "connect-src 'self' https://generativelanguage.googleapis.com",
+      // Gemini is called server-side only; the browser never needs this origin.
+      "connect-src 'self'",
       "form-action 'self'",
     ].join("; "),
   },

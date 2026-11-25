@@ -13,6 +13,7 @@ import {
 } from "@/lib/ai";
 import { buildDecisions, DEFAULT_PROFILE, type DecisionProfile } from "@/lib/decision-engine";
 import { deterministicPlan } from "@/lib/plan-fallback";
+import { deterministicIndoorPlan } from "@/lib/indoor-guidance";
 import { apiError } from "@/lib/http";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/client-ip";
@@ -98,6 +99,14 @@ const PUBLIC_ERROR: Record<AiErrorCode, string> = {
   upstream: "The AI provider is unavailable right now.",
 };
 
+/** Transient availability failures where a rule-based answer is legitimate. */
+function isTransientAiError(error: unknown) {
+  return (
+    error instanceof AiError &&
+    ["busy", "timeout", "model_unavailable", "upstream"].includes(error.code)
+  );
+}
+
 export async function POST(request: NextRequest) {
   if (!aiConfigured()) {
     return apiError(
@@ -160,11 +169,8 @@ export async function POST(request: NextRequest) {
         const data = await dailyPlan(air, input.profile, recordModel);
         return Response.json({ mode: "plan", data, model: servedModel, configured: true });
       } catch (error) {
-        const unavailable =
-          error instanceof AiError &&
-          ["busy", "timeout", "model_unavailable", "upstream"].includes(error.code);
-        if (unavailable) {
-          // Only the Daily Plan has a complete deterministic rule set to fall back to.
+        if (isTransientAiError(error)) {
+          // The Daily Plan has a complete deterministic rule set to fall back to.
           return Response.json({
             mode: "plan",
             data: deterministicPlan(air, input.profile),
@@ -178,21 +184,57 @@ export async function POST(request: NextRequest) {
     }
 
     if (input.mode === "indoor") {
-      const data = await indoorGuidance(air, input.household, recordModel);
-      return Response.json({ mode: "indoor", data, model: servedModel, configured: true });
+      try {
+        const data = await indoorGuidance(air, input.household, recordModel);
+        return Response.json({ mode: "indoor", data, model: servedModel, configured: true });
+      } catch (error) {
+        if (isTransientAiError(error)) {
+          return Response.json({
+            mode: "indoor",
+            data: deterministicIndoorPlan(air),
+            model: "deterministic",
+            configured: true,
+            fallback: "deterministic",
+          });
+        }
+        throw error;
+      }
     }
 
     // The engine runs here on freshly fetched readings; the browser cannot send a verdict.
     const profile: DecisionProfile = input.profile;
     const report = buildDecisions(air, profile);
-    const data = await explainDecision(air, report, input.decisionId, recordModel);
-    return Response.json({
-      mode: "explain",
-      decisionId: input.decisionId,
-      data,
-      model: servedModel,
-      configured: true,
-    });
+    try {
+      const data = await explainDecision(air, report, input.decisionId, recordModel);
+      return Response.json({
+        mode: "explain",
+        decisionId: input.decisionId,
+        data,
+        model: servedModel,
+        configured: true,
+      });
+    } catch (error) {
+      if (isTransientAiError(error)) {
+        // The deterministic verdict already exists; present it without pretending AI wrote it.
+        const decision = report.decisions.find((item) => item.id === input.decisionId);
+        if (decision) {
+          return Response.json({
+            mode: "explain",
+            decisionId: input.decisionId,
+            data: {
+              headline: decision.headline,
+              why: decision.reason,
+              whatToDo: decision.action,
+              uncertainty: decision.uncertainty,
+            },
+            model: "deterministic",
+            configured: true,
+            fallback: "deterministic",
+          });
+        }
+      }
+      throw error;
+    }
   } catch (error) {
     if (error instanceof AiError) {
       // Detailed diagnostics stay in server logs; clients receive stable copy only.

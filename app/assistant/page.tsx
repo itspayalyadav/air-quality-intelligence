@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "@/lib/location";
 import { useAiRequest } from "@/lib/use-ai";
@@ -134,6 +135,15 @@ export default function AssistantPage() {
           ) : null}
 
           {chat.error ? <AiErrorPanel error={chat.error} /> : null}
+          {chat.error && ["busy", "timeout", "upstream", "model_unavailable"].includes(chat.error.code) ? (
+            <p className="mt-3 rounded-lg border border-line bg-surface px-3 py-2 text-[12px] leading-relaxed text-ink-soft">
+              No answer was invented. You can still see the{" "}
+              <Link href="/decisions" className="font-bold text-accent underline">
+                rule-based decisions for these readings
+              </Link>
+              .
+            </p>
+          ) : null}
         </div>
 
         <form
