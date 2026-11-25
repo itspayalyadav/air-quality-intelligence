@@ -101,6 +101,38 @@ describe("/api/ai contract", () => {
 describe("consistent deterministic degradation", () => {
   const transient = () => new AiError("busy", "capacity");
 
+  it("returns rule-based Daily Plan when both models are unavailable", async () => {
+    getAirData.mockResolvedValue(airFixture());
+    aiMocks.dailyPlan.mockRejectedValue(transient());
+    const response = await aiPost(
+      aiRequest(
+        {
+          mode: "plan",
+          lat: 28.6139,
+          lon: 77.209,
+          place,
+          profile: {
+            routine: "Office, 9 to 6",
+            outdoorActivity: "Morning walk or run",
+            transport: "Walk or cycle",
+            household: "Apartment, no purifier",
+            concerns: "General health",
+          },
+        },
+        { "x-vercel-forwarded-for": "203.0.113.39" },
+      ),
+    );
+    expect(response.status).toBe(200);
+    const json = (await response.json()) as {
+      fallback?: string;
+      model: string;
+      data: { items: unknown[] };
+    };
+    expect(json.fallback).toBe("deterministic");
+    expect(json.model).toBe("deterministic");
+    expect(json.data.items).toHaveLength(5);
+  });
+
   it("returns rule-based indoor guidance when both models are unavailable", async () => {
     getAirData.mockResolvedValue(airFixture());
     aiMocks.indoorGuidance.mockRejectedValue(transient());

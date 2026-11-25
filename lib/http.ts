@@ -2,7 +2,10 @@ export type ApiErrorBody = { error: { code: string; message: string } };
 
 export function apiError(status: number, code: string, message: string, headers?: HeadersInit) {
   const body: ApiErrorBody = { error: { code, message } };
-  return Response.json(body, { status, headers });
+  const responseHeaders = new Headers(headers);
+  // Never let a shared cache replay a rate-limit or upstream failure past Retry-After.
+  responseHeaders.set("Cache-Control", "no-store");
+  return Response.json(body, { status, headers: responseHeaders });
 }
 
 export class ApiRequestError extends Error {

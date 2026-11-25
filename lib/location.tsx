@@ -104,7 +104,13 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
   }, [place, nonce]);
 
   const setPlace = useCallback((next: Place) => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    try {
+      // Do not persist precise device coordinates; named cities are fine to remember.
+      if (next.name === "Your location") window.localStorage.removeItem(STORAGE_KEY);
+      else window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      // Storage can be blocked in private browsing; the place still works in memory.
+    }
     setGeoError(null);
     setPlaceState(next);
   }, []);

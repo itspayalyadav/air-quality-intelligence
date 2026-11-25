@@ -192,6 +192,11 @@ export function LocationButton() {
             ) : null}
 
             <div className="mt-2 max-h-72 overflow-y-auto">
+              {!searching && results.length ? (
+                <p className="sr-only" role="status">
+                  {results.length} {results.length === 1 ? "city" : "cities"} found.
+                </p>
+              ) : null}
               {searching ? <p className="px-3 py-2 text-sm text-ink-muted" role="status">Searching…</p> : null}
               {searchError && !searching ? (
                 <p className="px-3 py-2 text-sm text-ink-muted" role="alert">{searchError}</p>

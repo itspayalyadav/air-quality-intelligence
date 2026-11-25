@@ -23,7 +23,7 @@ const COPY: Record<string, { title: string; body: string; retryable: boolean }> 
   },
   timeout: {
     title: "The model timed out",
-    body: "Gemini took longer than 25 seconds to answer, so the request was cancelled rather than left hanging. Try a shorter question.",
+    body: "Gemini took longer than 20 seconds to answer, so the request was cancelled rather than left hanging. Try a shorter question.",
     retryable: true,
   },
   bad_output: {
@@ -97,7 +97,7 @@ export function AiFallbackNotice({ children }: { children?: ReactNode }) {
 
 export function AiThinking({ label = "Thinking with the current readings" }: { label?: string }) {
   return (
-    <div className="space-y-2" aria-live="polite">
+    <div className="space-y-2">
       <p className="flex items-center gap-2 text-sm text-ink-muted">
         <SparkIcon className="h-4 w-4 animate-pulse" />
         {label}…

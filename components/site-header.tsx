@@ -109,7 +109,7 @@ export function SiteHeader() {
               type="button"
               onClick={() => setOpen((value) => !value)}
               aria-expanded={open}
-              aria-controls="site-menu"
+              aria-controls={open ? "site-menu" : undefined}
               aria-label={open ? "Close menu" : "Open menu"}
               className="-mr-1 flex h-10 w-10 items-center justify-center rounded-full border border-line bg-surface text-ink transition hover:border-accent"
             >

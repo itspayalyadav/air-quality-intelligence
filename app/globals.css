@@ -229,7 +229,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rise, .rise *, .hero-in, .parallax, .menu-in > * { animation: none !important; }
+  .rise, .rise *, .hero-in, .parallax, .menu-in > *, .animate-pulse { animation: none !important; }
   .hero-in, .parallax { transform: none !important; }
   .lift:hover { transform: none; }
   * { scroll-behavior: auto !important; }

@@ -60,15 +60,81 @@ test.describe("keyboard and dialog accessibility", () => {
 
   test("mobile menu closes with Escape and returns focus to its toggle", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
+    await page.route("**/api/air*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(airFixture()),
+      }),
+    );
     await page.goto("/");
 
+    const scan = async () => {
+      const results = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"])
+        .analyze();
+      const serious = results.violations.filter((item) =>
+        ["serious", "critical"].includes(item.impact ?? ""),
+      );
+      expect(serious.map((item) => `${item.id}: ${item.help}`)).toEqual([]);
+    };
+
+    await scan(); // closed menu: no dangling aria-controls IDREF
     const toggle = page.getByRole("button", { name: "Open menu" });
     await toggle.focus();
     await page.keyboard.press("Enter");
     await expect(page.getByRole("navigation", { name: "Mobile" })).toBeVisible();
+    await scan();
 
     await page.keyboard.press("Escape");
     await expect(page.getByRole("navigation", { name: "Mobile" })).toBeHidden();
     await expect(page.getByRole("button", { name: "Open menu" })).toBeFocused();
+  });
+
+  test("announces the number of cities found", async ({ page }) => {
+    await page.route("**/api/air*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(airFixture()),
+      }),
+    );
+    await page.route("**/api/cities*", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          results: [
+            {
+              id: "19.07,72.87",
+              name: "Mumbai",
+              admin: "Maharashtra",
+              country: "India",
+              countryCode: "IN",
+              latitude: 19.07,
+              longitude: 72.87,
+            },
+          ],
+        }),
+      }),
+    );
+    await page.goto("/dashboard");
+    await page.getByRole("button", { name: /New Delhi/ }).click();
+    await page.getByLabel("Search for a city").fill("mumbai");
+    await expect(page.getByText("1 city found.")).toHaveCount(1);
+  });
+
+  test("reduced motion disables pulse animations", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/");
+    const animation = await page.evaluate(() => {
+      const node = document.createElement("div");
+      node.className = "animate-pulse";
+      document.body.appendChild(node);
+      const name = getComputedStyle(node).animationName;
+      node.remove();
+      return name;
+    });
+    expect(animation).toBe("none");
   });
 });

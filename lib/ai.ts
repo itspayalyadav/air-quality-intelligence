@@ -201,7 +201,9 @@ async function withFallback<T>(
     } catch (error) {
       lastError = error;
       if (!retryable(error) || index === sequence.length - 1) break;
-      console.warn(`[ai] ${model} failed (${(error as AiError).code ?? "error"}), retrying`);
+      console.warn(
+        `[ai] ${model} failed (${error instanceof AiError ? error.code : "error"}), retrying`,
+      );
       const backoff = Math.min(MAX_BACKOFF_MS, BACKOFF_BASE_MS * 2 ** index);
       const wait =
         error instanceof AiError && error.code === "busy" && error.retryAfterMs != null

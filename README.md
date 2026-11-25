@@ -172,7 +172,9 @@ npm run test:e2e   # playwright (build first)
 - Upstream Open-Meteo, geocoding and Gemini payloads are validated with Zod before use; malformed data becomes a controlled error, never a fabricated AQI
 - Security headers on every route: Content-Security-Policy, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` and `Permissions-Policy`. `connect-src` is limited to the app origin because Gemini is called server-side
 - CSP nonce evaluation: a per-request nonce in `proxy.ts` would require forcing dynamic rendering on every statically prerendered page, losing CDN caching. A report-only trial produced zero nonce attributes in the static HTML, so the current static policy with `script-src 'unsafe-inline'` is retained and documented as a trade-off
-- The location dialog uses `aria-modal`, a Tab trap and focus restoration; the mobile menu restores focus to its toggle on close
+- The location dialog uses `aria-modal`, a Tab trap and focus restoration; the mobile menu restores focus to its toggle on close and only sets `aria-controls` while open
+- Precise device coordinates are not persisted; `localStorage` writes are guarded for private browsing
+- Error responses are explicitly `no-store`; AI place metadata is stripped of control characters before it reaches a prompt
 - Explicit refreshes and precise device locations use `private, no-store` so they never enter a shared cache
 - Public error responses use fixed copy; diagnostics stay in server logs
 - Prompts forbid fabricated readings, citywide claims, medical diagnoses and invented station names
@@ -189,9 +191,9 @@ All gates were run locally on Node 26.8.1 / npm 11.19.0 with these results:
 |---|---|---|
 | Strict TypeScript | `npm run typecheck` | passed |
 | Lint | `npm run lint` | passed |
-| Unit tests | `npm test` | 112 passed, 14 files |
+| Unit tests | `npm test` | 113 passed, 14 files |
 | Build | `npm run build` | passed |
-| Browser / axe / responsive | `npm run test:e2e` | 50 passed |
+| Browser / axe / responsive | `npm run test:e2e` | 54 passed |
 | Dependency audit | `npm run audit` | 0 high/critical vulnerabilities |
 
 The suite covers:
@@ -203,7 +205,7 @@ The suite covers:
 - Impact factors, rate limiting, history trend, HTTP error parsing
 - API route contracts: invalid bodies/coordinates, spoofed forwarding headers, missing key, refresh cache headers
 - AI edge cases: timeout, blocked output, malformed envelope, 500 upstream, HTTP-date `Retry-After`, model fallback and serving-model reporting
-- Browser: live data, location search, invalid location, missing key, Gemini failure, deterministic plan/indoor/explain fallbacks, US/CPCB toggle, responsive layouts at 360–1440 px, axe scans including the open location dialog, keyboard-only Tab-trap/Escape/focus-restoration tests
+- Browser: live data, location search result announcements, invalid location, missing key, Gemini failure, Assistant fallback link navigation, deterministic plan/indoor/explain fallbacks, interactive commute-impact table, US/CPCB toggle, responsive layouts at 360–1440 px, axe scans including open-dialog and best-practice rules, keyboard-only Tab-trap/Escape/focus-restoration tests, reduced-motion animation check
 
 Local production-server smoke test: `/`, `/dashboard`, `/decisions`, `/plan`, `/indoor`, `/insights`, `/api/air`, `/api/cities`, `/robots.txt` and `/sitemap.xml` all returned 200; `/api/ai` returned 503 `missing_key` as designed when no key was set. A live Delhi reading returned PM2.5 99.7 µg/m³, US AQI 218 and CPCB AQI 231 with `observedAt` 2026-11-22T20:30 and `stale: false`. The same checks were repeated against the Vercel production URL after configuring the key; see [Deployment](#deployment).
 

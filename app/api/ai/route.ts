@@ -99,6 +99,11 @@ const PUBLIC_ERROR: Record<AiErrorCode, string> = {
   upstream: "The AI provider is unavailable right now.",
 };
 
+/** Place strings reach the model prompt; strip control characters at the boundary. */
+function cleanText(value: string | undefined) {
+  return value?.replace(/[\u0000-\u001f\u007f]/g, "").trim() || undefined;
+}
+
 /** Transient availability failures where a rule-based answer is legitimate. */
 function isTransientAiError(error: unknown) {
   return (
@@ -112,7 +117,7 @@ export async function POST(request: NextRequest) {
     return apiError(
       503,
       "missing_key",
-      "The AI assistant is not configured on this server. Add GEMINI_API_KEY and redeploy.",
+      PUBLIC_ERROR.missing_key,
     );
   }
 
@@ -145,14 +150,15 @@ export async function POST(request: NextRequest) {
 
   try {
     // The model is grounded in a server-side fetch, never in numbers sent by the browser.
-    const air = await getAirData(input.lat, input.lon, {
-      name: input.place.name,
-      admin: input.place.admin,
-      country: input.place.country,
-      countryCode: input.place.countryCode,
+    const place = {
+      name: cleanText(input.place.name) ?? "Selected location",
+      admin: cleanText(input.place.admin),
+      country: cleanText(input.place.country),
+      countryCode: cleanText(input.place.countryCode),
       latitude: input.lat,
       longitude: input.lon,
-    });
+    };
+    const air = await getAirData(input.lat, input.lon, place);
 
     let servedModel = activeModel();
     const recordModel = (model: string) => {
