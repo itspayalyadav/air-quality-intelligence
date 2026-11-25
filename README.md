@@ -168,7 +168,11 @@ npm run test:e2e   # playwright (build first)
 - API keys live only in server environment variables; no client-side key, no secrets in Git
 - `/api/ai` validates every field with zod and rejects coordinates outside valid ranges
 - Readings are fetched server-side, so a malicious client cannot make the model reason about invented pollution
-- Rate limiting: 12 requests per client per minute with `Retry-After`
+- Rate limiting: AI 12, air 30 and city search 20 requests per client per minute with `Retry-After`. Only the platform-written `x-vercel-forwarded-for` header is trusted for client identity; spoofable headers are ignored
+- Upstream Open-Meteo, geocoding and Gemini payloads are validated with Zod before use; malformed data becomes a controlled error, never a fabricated AQI
+- Security headers on every route: Content-Security-Policy, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` and `Permissions-Policy`
+- Explicit refreshes and precise device locations use `private, no-store` so they never enter a shared cache
+- Public error responses use fixed copy; diagnostics stay in server logs
 - Prompts forbid fabricated readings, citywide claims, medical diagnoses and invented station names
 - Empty or wrong-shape model answers are discarded, not rendered
 - No personal data is stored beyond a place name in `localStorage`
@@ -183,9 +187,10 @@ All gates were run locally on Node 26.8.1 / npm 11.19.0 with these results:
 |---|---|---|
 | Strict TypeScript | `npm run typecheck` | passed |
 | Lint | `npm run lint` | passed |
-| Unit tests | `npm test` | 88 passed, 11 files |
+| Unit tests | `npm test` | 106 passed, 13 files |
 | Build | `npm run build` | passed |
-| Browser / axe / responsive | `npm run test:e2e` | 44 passed |
+| Browser / axe / responsive | `npm run test:e2e` | 45 passed |
+| Dependency audit | `npm run audit` | 0 high/critical vulnerabilities |
 
 The suite covers:
 
@@ -194,7 +199,9 @@ The suite covers:
 - Gemini: missing key, 503 retry, 404 fallback, non-retryable 400, malformed JSON, schema violations, prompt grounding
 - Decision engine: standard selection, good/poor air, sensitivity and intensity escalation, heat bonus, rising/falling trend, stale evidence, missing-index honesty, rule traces
 - Impact factors, rate limiting, history trend, HTTP error parsing
-- Browser: live data, location search, invalid location, missing key, Gemini failure, US/CPCB toggle, responsive layouts at 390/834/1440 px, axe accessibility scans
+- API route contracts: invalid bodies/coordinates, spoofed forwarding headers, missing key, refresh cache headers
+- AI edge cases: timeout, blocked output, malformed envelope, 500 upstream, HTTP-date `Retry-After`, model fallback and serving-model reporting
+- Browser: live data, location search, invalid location, missing key, Gemini failure, deterministic Daily Plan fallback, US/CPCB toggle, responsive layouts at 360–1440 px, axe accessibility scans
 
 Local production-server smoke test: `/`, `/dashboard`, `/decisions`, `/plan`, `/indoor`, `/insights`, `/api/air`, `/api/cities`, `/robots.txt` and `/sitemap.xml` all returned 200; `/api/ai` returned 503 `missing_key` as designed when no key was set. A live Delhi reading returned PM2.5 99.7 µg/m³, US AQI 218 and CPCB AQI 231 with `observedAt` 2026-11-22T20:30 and `stale: false`. The same checks were repeated against the Vercel production URL after configuring the key; see [Deployment](#deployment).
 

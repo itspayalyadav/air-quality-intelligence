@@ -3,7 +3,6 @@ export const SITE_URL =
 export const GITHUB_URL = "https://github.com/itspayalyadav/air-quality-intelligence";
 export const SITE_NAME = "Aeris";
 export const SITE_TITLE = "Aeris | Urban Air Intelligence";
-export const SITE_TAGLINE = "Know the air. Decide with confidence.";
 export const SHARE_IMAGE = {
   url: "/images/hero-city-haze.jpg",
   width: 1800,

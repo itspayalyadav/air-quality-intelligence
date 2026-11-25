@@ -71,7 +71,10 @@ export function PollutantGridSkeleton() {
 export function StaleNotice({ air }: { air: AirData }) {
   if (!air.stale) return null;
   return (
-    <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-sm text-amber-900">
+    <div
+      role="status"
+      className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-sm text-amber-900"
+    >
       <AlertIcon className="mt-0.5 h-4 w-4 shrink-0" />
       <p>
         This reading is from {new Date(air.observedAt).toLocaleString()} and is more than three

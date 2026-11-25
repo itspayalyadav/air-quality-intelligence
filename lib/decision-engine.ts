@@ -76,6 +76,11 @@ function numeric(value: number | null | undefined, digits = 0): string {
   return value == null || !Number.isFinite(value) ? "unavailable" : value.toFixed(digits);
 }
 
+/** One canonical score→verdict rule; each decision only chooses its thresholds. */
+function stanceForScore(score: number, goMax: number, cautionMax: number): Stance {
+  return score <= goMax ? "go" : score <= cautionMax ? "caution" : "avoid";
+}
+
 export function buildDecisions(
   air: AirData,
   profile: DecisionProfile = DEFAULT_PROFILE,
@@ -125,7 +130,7 @@ export function buildDecisions(
     const sensitiveBonus = profile.sensitive ? 1 : 0;
     const intensityBonus = INTENSITY_BONUS[profile.intensity];
     const score = base + sensitiveBonus + intensityBonus;
-    const stance: Stance = score <= 1 ? "go" : score === 2 ? "caution" : "avoid";
+    const stance = stanceForScore(score, 1, 2);
     const headline =
       stance === "go"
         ? "Outdoor time is fine"
@@ -163,7 +168,7 @@ export function buildDecisions(
     const intensityBonus = INTENSITY_BONUS[profile.intensity];
     const heatBonus = temperature != null && temperature >= 35 ? 1 : 0;
     const score = base + sensitiveBonus + intensityBonus + heatBonus;
-    const stance: Stance = score <= 1 ? "go" : score === 2 ? "caution" : "avoid";
+    const stance = stanceForScore(score, 1, 2);
     decisions.push({
       id: "exercise",
       title: "Exercise outside",
@@ -200,7 +205,7 @@ export function buildDecisions(
   } else {
     const trendBonus = trend.direction === "rising" ? 1 : trend.direction === "falling" ? -1 : 0;
     const score = Math.max(0, base + trendBonus);
-    const stance: Stance = score <= 0 ? "go" : score === 1 ? "caution" : "avoid";
+    const stance = stanceForScore(score, 0, 1);
     decisions.push({
       id: "ventilate",
       title: "Ventilate home",
@@ -245,7 +250,7 @@ export function buildDecisions(
   } else {
     const sensitivityBonus = profile.sensitive ? 1 : 0;
     const score = base + sensitivityBonus;
-    const stance: Stance = score <= 1 ? "go" : score === 2 ? "caution" : "avoid";
+    const stance = stanceForScore(score, 1, 2);
     decisions.push({
       id: "commute",
       title: "Commute choice",

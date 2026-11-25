@@ -140,6 +140,22 @@ describe("getAirData", () => {
     await expect(getAirData(28.6139, 77.209, PLACE)).rejects.toMatchObject({ status: 504 });
   });
 
+  it("rejects a malformed upstream payload before it reaches AQI calculations", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve(
+          jsonResponse({
+            timezone: "Asia/Kolkata",
+            current: { us_aqi: "not a number" },
+          }),
+        ),
+      ),
+    );
+
+    await expect(getAirData(28.6139, 77.209, PLACE)).rejects.toMatchObject({ status: 502 });
+  });
+
   it("rejects coordinates outside the valid range before calling out", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);

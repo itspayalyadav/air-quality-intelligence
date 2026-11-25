@@ -51,6 +51,8 @@ export function TrendChart({ history }: { history: History }) {
           role="img"
           aria-label={`PM2.5 over the last seven days. Peak ${Math.round(peak)} micrograms per cubic metre, last 24 hour average ${average24.toFixed(1)}.`}
         >
+          <title>PM2.5 trend over the last seven days</title>
+          <desc>{`Peak ${Math.round(peak)} micrograms per cubic metre; last 24 hour average ${average24.toFixed(1)}. The dashed line marks India's 24 hour standard of 60 micrograms per cubic metre.`}</desc>
           <defs>
             <linearGradient id="pm25-fill" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#2563eb" stopOpacity="0.20" />

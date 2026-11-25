@@ -74,7 +74,7 @@ export type ImpactRow = {
   percentOfCar: number;
 };
 
-export function clampNumber(value: number, min: number, max: number) {
+function clampNumber(value: number, min: number, max: number) {
   if (!Number.isFinite(value)) return min;
   return Math.min(max, Math.max(min, value));
 }

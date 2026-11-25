@@ -15,6 +15,7 @@ import { buildDecisions, DEFAULT_PROFILE, type DecisionProfile } from "@/lib/dec
 import { deterministicPlan } from "@/lib/plan-fallback";
 import { apiError } from "@/lib/http";
 import { rateLimit } from "@/lib/rate-limit";
+import { clientIp } from "@/lib/client-ip";
 
 export const dynamic = "force-dynamic";
 // Three attempts (primary, retry, fallback) are bounded by this. Without it
@@ -82,8 +83,19 @@ const STATUS_BY_CODE: Record<AiErrorCode, number> = {
   model_unavailable: 503,
   timeout: 504,
   bad_output: 502,
-  invalid_request: 502,
+  invalid_request: 400,
   upstream: 502,
+};
+
+/** Fixed public copy: internal model names, provider statuses and schema fields stay server-side. */
+const PUBLIC_ERROR: Record<AiErrorCode, string> = {
+  missing_key: "The AI assistant is not configured on this server.",
+  busy: "The AI model is busy right now. Please try again shortly.",
+  model_unavailable: "The configured AI model is unavailable. Please try again later.",
+  timeout: "The AI model took too long to respond.",
+  bad_output: "The AI model returned an unusable answer. Nothing was invented in its place.",
+  invalid_request: "The AI request could not be accepted. Check the question and try again.",
+  upstream: "The AI provider is unavailable right now.",
 };
 
 export async function POST(request: NextRequest) {
@@ -95,11 +107,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    "local";
-  const limit = rateLimit(ip);
+  const limit = rateLimit(`ai:${clientIp(request)}`);
   if (!limit.ok) {
     return apiError(
       429,
@@ -118,7 +126,7 @@ export async function POST(request: NextRequest) {
 
   const parsed = bodySchema.safeParse(payload);
   if (!parsed.success) {
-    return apiError(400, "invalid_body", parsed.error.issues[0]?.message ?? "Invalid request.");
+    return apiError(400, "invalid_body", "The request contains invalid fields.");
   }
 
   const input = parsed.data;
@@ -187,7 +195,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     if (error instanceof AiError) {
-      return apiError(STATUS_BY_CODE[error.code], error.code, error.message);
+      // Detailed diagnostics stay in server logs; clients receive stable copy only.
+      console.error(`[ai] ${error.code}: ${error.message}`);
+      return apiError(STATUS_BY_CODE[error.code], error.code, PUBLIC_ERROR[error.code]);
     }
     if (error instanceof UpstreamError) {
       return apiError(

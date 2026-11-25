@@ -1,6 +1,6 @@
 "use client";
 
-import type { AiError } from "@/lib/use-ai";
+import type { AiClientError } from "@/lib/use-ai";
 import { AlertIcon, SparkIcon } from "./icons";
 import { Skeleton } from "./ui";
 
@@ -57,7 +57,7 @@ const COPY: Record<string, { title: string; body: string; retryable: boolean }> 
   },
 };
 
-export function AiErrorPanel({ error, onRetry }: { error: AiError; onRetry?: () => void }) {
+export function AiErrorPanel({ error, onRetry }: { error: AiClientError; onRetry?: () => void }) {
   const copy = COPY[error.code] ?? COPY.unknown;
   return (
     <div className="rounded-lg border-2 border-amber-300 bg-amber-50 p-4" role="alert">

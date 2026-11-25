@@ -171,6 +171,63 @@ describe("capacity errors", () => {
   });
 });
 
+describe("remaining AI error branches", () => {
+  it("maps a fetch timeout to the timeout code without retrying", async () => {
+    const timeout = new Error("timed out");
+    timeout.name = "TimeoutError";
+    const fetchMock = vi.fn().mockRejectedValue(timeout);
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(generateText("system", "prompt")).rejects.toMatchObject({ code: "timeout" });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports a blocked response as bad_output", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ promptFeedback: { blockReason: "SAFETY" } }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+      ),
+    );
+    await expect(generateText("system", "prompt")).rejects.toMatchObject({ code: "bad_output" });
+  });
+
+  it("returns bad_output for a malformed Gemini envelope", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ unexpected: true }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+      ),
+    );
+    await expect(generateText("system", "prompt")).rejects.toMatchObject({ code: "bad_output" });
+  });
+
+  it("maps a 500 upstream to upstream after the model chain is exhausted", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 500 }));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(generateText("system", "prompt")).rejects.toMatchObject({ code: "upstream" });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("honours an HTTP-date Retry-After hint", async () => {
+    const retryAfter = new Date(Date.now() + 10).toUTCString();
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response("{}", { status: 429, headers: { "retry-after": retryAfter } }),
+      )
+      .mockResolvedValueOnce(geminiResponse("ok"));
+    vi.stubGlobal("fetch", fetchMock);
+    expect(await generateText("system", "prompt")).toBe("ok");
+  });
+});
+
 describe("structured recommendations", () => {
   const valid = {
     summary: "Keep windows closed until the evening.",

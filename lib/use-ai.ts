@@ -3,12 +3,13 @@
 import { useCallback, useState } from "react";
 import { ApiRequestError, readJson } from "./http";
 
-export type AiError = { code: string; message: string };
+/** Client-facing view of an API error. Distinct from the server-only AiError class. */
+export type AiClientError = { code: string; message: string };
 
 export function useAiRequest<T>() {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<AiError | null>(null);
+  const [error, setError] = useState<AiClientError | null>(null);
 
   const run = useCallback(async (body: unknown) => {
     setLoading(true);

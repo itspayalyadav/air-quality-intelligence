@@ -84,7 +84,8 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     setError(null);
 
-    fetch(`/api/air?${placeQuery(place)}`, { signal: controller.signal })
+    const refreshParam = nonce > 0 ? `&refresh=${nonce}` : "";
+    fetch(`/api/air?${placeQuery(place)}${refreshParam}`, { signal: controller.signal })
       .then((response) => readJson<AirData>(response, "Could not load air quality data."))
       .then((data) => {
         if (id !== requestId.current) return;
@@ -151,5 +152,3 @@ export function useLocation() {
   if (!context) throw new Error("useLocation must be used inside LocationProvider");
   return context;
 }
-
-export { DEFAULT_PLACE };

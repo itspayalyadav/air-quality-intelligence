@@ -75,7 +75,8 @@ export function AiText({ text }: { text: string }) {
       <Markdown
         remarkPlugins={[remarkGfm, remarkBreaks]}
         components={{
-          h1: ({ children }) => <h3 className="text-base font-semibold text-ink">{children}</h3>,
+          // Pages already have an h1; model headings must never skip a level.
+          h1: ({ children }) => <h2 className="text-base font-semibold text-ink">{children}</h2>,
           h2: ({ children }) => <h3 className="text-base font-semibold text-ink">{children}</h3>,
           h3: ({ children }) => <h4 className="text-sm font-semibold text-ink">{children}</h4>,
           h4: ({ children }) => <h5 className="text-sm font-semibold text-ink">{children}</h5>,

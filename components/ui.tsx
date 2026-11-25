@@ -143,8 +143,5 @@ export const buttonPrimary =
 export const buttonSecondary =
   "inline-flex items-center justify-center gap-2 rounded-full border border-ink/20 bg-surface px-5 py-2.5 text-sm font-bold text-ink transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50";
 
-export const buttonGhost =
-  "inline-flex items-center justify-center gap-2 rounded-full px-3 py-2 text-sm font-bold text-ink-soft transition hover:bg-accent-soft hover:text-ink disabled:cursor-not-allowed disabled:opacity-50";
-
 export const fieldClass =
   "w-full rounded-lg border border-line-strong bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20";

@@ -29,7 +29,11 @@ export default function AssistantPage() {
   const threadRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: "smooth" });
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    threadRef.current?.scrollTo({
+      top: threadRef.current.scrollHeight,
+      behavior: reduced ? "auto" : "smooth",
+    });
   }, [turns.length, chat.loading]);
 
   async function send(message: string) {

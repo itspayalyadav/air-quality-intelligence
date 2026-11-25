@@ -34,7 +34,7 @@ export class AiError extends Error {
 }
 
 export function aiConfigured() {
-  return Boolean(process.env.GEMINI_API_KEY);
+  return Boolean(process.env.GEMINI_API_KEY?.trim());
 }
 
 export function activeModel() {
@@ -80,10 +80,17 @@ const recommendationValidator = z.object({
     .min(1),
 });
 
-type GeminiResponse = {
-  candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-  promptFeedback?: { blockReason?: string };
-};
+/** Gemini responses are validated at the trust boundary before use. */
+const geminiSchema = z.object({
+  candidates: z
+    .array(
+      z.object({
+        content: z.object({ parts: z.array(z.object({ text: z.string().optional() })).optional() }).optional(),
+      }),
+    )
+    .optional(),
+  promptFeedback: z.object({ blockReason: z.string().optional() }).optional(),
+});
 
 /** Honour Retry-After when present, but never let a hint exceed the call budget. */
 function retryHint(response: Response): number | undefined {
@@ -140,7 +147,17 @@ async function callGemini(
     throw new AiError("upstream", `The AI model returned ${response.status}.`);
   }
 
-  const data = (await response.json()) as GeminiResponse;
+  let raw: unknown;
+  try {
+    raw = await response.json();
+  } catch {
+    throw new AiError("bad_output", "The AI model returned unreadable data.");
+  }
+  const parsed = geminiSchema.safeParse(raw);
+  if (!parsed.success) {
+    throw new AiError("bad_output", "The AI model returned an unexpected response shape.");
+  }
+  const data = parsed.data;
   const text = (data.candidates?.[0]?.content?.parts ?? [])
     .map((part) => part.text ?? "")
     .join("")

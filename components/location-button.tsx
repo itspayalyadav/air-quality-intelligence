@@ -159,9 +159,9 @@ export function LocationButton() {
             ) : null}
 
             <div className="mt-2 max-h-72 overflow-y-auto">
-              {searching ? <p className="px-3 py-2 text-sm text-ink-muted">Searching…</p> : null}
+              {searching ? <p className="px-3 py-2 text-sm text-ink-muted" role="status">Searching…</p> : null}
               {searchError && !searching ? (
-                <p className="px-3 py-2 text-sm text-ink-muted">{searchError}</p>
+                <p className="px-3 py-2 text-sm text-ink-muted" role="alert">{searchError}</p>
               ) : null}
               <ul>
                 {results.map((city) => (

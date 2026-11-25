@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { computeCpcbAqi, POLLUTANT_KEYS, POLLUTANT_META, usBand, windCompass } from "./aqi";
 import type { AirData, Place, PollutantKey, PollutantReading, Weather } from "./types";
 
@@ -17,7 +18,69 @@ export class UpstreamError extends Error {
   }
 }
 
-async function getJson<T>(url: string): Promise<T> {
+const readings = z.record(z.string(), z.union([z.number(), z.string(), z.null()]));
+
+const airBase = z.object({
+  timezone: z.string().optional(),
+  utc_offset_seconds: z.number().optional(),
+  current: readings.optional(),
+  hourly: z
+    .object({
+      time: z.array(z.string()).optional(),
+      pm2_5: z.array(z.number().nullable()).optional(),
+    })
+    .optional(),
+});
+
+const AIR_NUMERIC_KEYS = [
+  "us_aqi",
+  ...POLLUTANT_KEYS,
+  ...POLLUTANT_KEYS.map((key) => `us_aqi_${key}`),
+];
+const WEATHER_NUMERIC_KEYS = [
+  "temperature_2m",
+  "relative_humidity_2m",
+  "wind_speed_10m",
+  "wind_direction_10m",
+];
+
+type WithCurrent = { current?: Record<string, number | string | null> };
+
+/** `current.time` is a string; every other measured field must be numeric or null. */
+function numericFields<S extends z.ZodType<WithCurrent>>(schema: S, keys: string[]) {
+  return schema.superRefine((data, context) => {
+    for (const key of keys) {
+      const value = data.current?.[key];
+      if (value != null && typeof value !== "number") {
+        context.addIssue({ code: z.ZodIssueCode.custom, path: ["current", key] });
+      }
+    }
+  });
+}
+
+const airSchema = numericFields(airBase, AIR_NUMERIC_KEYS);
+const weatherSchema = numericFields(
+  z.object({ current: readings.optional() }),
+  WEATHER_NUMERIC_KEYS,
+);
+const geocodeSchema = z.object({
+  results: z
+    .array(
+      z.object({
+        name: z.string(),
+        latitude: z.number(),
+        longitude: z.number(),
+        country: z.string().optional(),
+        country_code: z.string().optional(),
+        admin1: z.string().optional(),
+        population: z.number().optional(),
+      }),
+    )
+    .optional(),
+});
+
+/** Upstream payloads are untrusted: validate before they reach AQI calculations. */
+async function getJson<T>(url: string, schema: z.ZodType<T>): Promise<T> {
   let response: Response;
   try {
     response = await fetch(url, {
@@ -33,19 +96,18 @@ async function getJson<T>(url: string): Promise<T> {
       `Air quality provider returned ${response.status}.`,
     );
   }
-  return (await response.json()) as T;
+  let body: unknown;
+  try {
+    body = await response.json();
+  } catch {
+    throw new UpstreamError(502, "Air quality provider returned unreadable data.");
+  }
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) {
+    throw new UpstreamError(502, "Air quality provider returned an unexpected response.");
+  }
+  return parsed.data;
 }
-
-type OpenMeteoAir = {
-  timezone?: string;
-  utc_offset_seconds?: number;
-  current?: Record<string, number | string | null>;
-  hourly?: { time?: string[]; pm2_5?: (number | null)[] };
-};
-
-type OpenMeteoWeather = {
-  current?: Record<string, number | null>;
-};
 
 function num(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
@@ -93,8 +155,8 @@ export async function getAirData(lat: number, lon: number, place: Place): Promis
     `&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m&timezone=auto`;
 
   const [airResult, weatherResult] = await Promise.allSettled([
-    getJson<OpenMeteoAir>(airUrl),
-    getJson<OpenMeteoWeather>(weatherUrl),
+    getJson(airUrl, airSchema),
+    getJson(weatherUrl, weatherSchema),
   ]);
 
   if (airResult.status === "rejected") throw airResult.reason;
@@ -149,18 +211,6 @@ export async function getAirData(lat: number, lon: number, place: Place): Promis
   };
 }
 
-type GeocodeResponse = {
-  results?: Array<{
-    name: string;
-    latitude: number;
-    longitude: number;
-    country?: string;
-    country_code?: string;
-    admin1?: string;
-    population?: number;
-  }>;
-};
-
 export type CityResult = {
   id: string;
   name: string;
@@ -177,7 +227,7 @@ export async function searchCities(query: string): Promise<CityResult[]> {
   if (trimmed.length < 2) return [];
 
   const url = `${GEOCODE_URL}?name=${encodeURIComponent(trimmed)}&count=8&language=en&format=json`;
-  const data = await getJson<GeocodeResponse>(url);
+  const data = await getJson(url, geocodeSchema);
 
   return (data.results ?? []).map((r) => ({
     id: `${r.latitude},${r.longitude}`,
